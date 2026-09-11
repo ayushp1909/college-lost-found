@@ -1,0 +1,149 @@
+import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../utils/api';
+
+const ItemDetails = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const fetchItem = async () => {
+      try {
+        setLoading(true);
+        const data = await apiFetch(`/items/${id}`);
+        setItem(data.item);
+      } catch (err) {
+        setError(err.message || 'Failed to load item details.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItem();
+  }, [id]);
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm('Are you sure you want to delete this item? This action cannot be undone.');
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      await apiFetch(`/items/${id}`, {
+        method: 'DELETE'
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      alert(err.message || 'Failed to delete item.');
+      setDeleting(false);
+    }
+  };
+
+  if (loading) return <div className="loading-state">Loading item details...</div>;
+  if (error) return <div className="alert alert-error">{error}</div>;
+  if (!item) return <div className="empty-state">Item not found.</div>;
+
+  // Determine if current authenticated user is the owner
+  const isOwner = user && (
+    (typeof item.userId === 'object' && item.userId?._id === user._id) ||
+    item.userId === user._id
+  );
+
+  const formattedDate = item.date
+    ? new Date(item.date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    : 'Unknown Date';
+
+  const ownerName = typeof item.userId === 'object' ? item.userId?.name : 'User';
+
+  return (
+    <div className="details-container">
+      <div className="details-card">
+        {/* Item Image Display or Neutral Placeholder */}
+        <div className="details-image-section">
+          {item.imageUrl ? (
+            <img src={item.imageUrl} alt={item.title} className="details-image" />
+          ) : (
+            <div className="details-image-placeholder">
+              <span className="placeholder-icon">📦</span>
+              <span className="placeholder-text">No image uploaded for this item</span>
+            </div>
+          )}
+        </div>
+
+        <div className="details-header">
+          <div>
+            <span className={`badge badge-type badge-${item.type}`}>
+              {item.type.toUpperCase()}
+            </span>
+            <span className={`badge badge-status badge-status-${item.status}`}>
+              {item.status}
+            </span>
+          </div>
+
+          {/* Show Edit and Delete ONLY to the owner */}
+          {isOwner && (
+            <div className="details-actions">
+              <Link to={`/edit-item/${item._id}`} className="btn btn-secondary btn-sm">
+                ✏️ Edit
+              </Link>
+              <button
+                onClick={handleDelete}
+                className="btn btn-danger btn-sm"
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : '🗑️ Delete'}
+              </button>
+            </div>
+          )}
+        </div>
+
+        <h1 className="details-title">{item.title}</h1>
+
+        <div className="details-meta-grid">
+          <div className="meta-item">
+            <span className="meta-label">Category</span>
+            <span className="meta-value">{item.category}</span>
+          </div>
+          <div className="meta-item">
+            <span className="meta-label">Location</span>
+            <span className="meta-value">📍 {item.location}</span>
+          </div>
+          <div className="meta-item">
+            <span className="meta-label">Date Reported</span>
+            <span className="meta-value">🗓 {formattedDate}</span>
+          </div>
+          <div className="meta-item">
+            <span className="meta-label">Reported By</span>
+            <span className="meta-value">👤 {ownerName}</span>
+          </div>
+        </div>
+
+        <div className="details-description">
+          <h3>Description</h3>
+          <p>{item.description}</p>
+        </div>
+
+        <div className="details-footer">
+          <Link
+            to={item.type === 'lost' ? '/lost-items' : '/found-items'}
+            className="btn btn-secondary"
+          >
+            &larr; Back to {item.type === 'lost' ? 'Lost Items' : 'Found Items'}
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ItemDetails;
