@@ -152,8 +152,11 @@ const updateItem = async (req, res) => {
       });
     }
 
-    // Ownership check: only the user who created the item can update it
-    if (item.userId.toString() !== req.user._id.toString()) {
+    // Ownership/Admin check: item owner or admin can update the item
+    const isOwner = item.userId.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Forbidden: You are not authorized to update this item.'
@@ -162,16 +165,24 @@ const updateItem = async (req, res) => {
 
     const { title, description, category, type, location, date, status, imageUrl } = req.body;
 
-    // Validate type if provided
+    // Validate type if provided (Admins cannot change type between lost and found)
     if (type !== undefined) {
       const normalizedType = type.toLowerCase().trim();
-      if (!VALID_TYPES.includes(normalizedType)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Type must be either "lost" or "found".'
-        });
+      if (normalizedType !== item.type) {
+        if (isAdmin && !isOwner) {
+          return res.status(400).json({
+            success: false,
+            message: 'Admins cannot change item type between Lost and Found.'
+          });
+        }
+        if (!VALID_TYPES.includes(normalizedType)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Type must be either "lost" or "found".'
+          });
+        }
+        item.type = normalizedType;
       }
-      item.type = normalizedType;
     }
 
     // Validate status if provided

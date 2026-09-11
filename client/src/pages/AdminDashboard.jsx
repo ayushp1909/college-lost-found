@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 
 const AdminDashboard = () => {
@@ -182,14 +183,24 @@ const AdminDashboard = () => {
                           </td>
                           <td>{item.userId?.name || 'Anonymous'}</td>
                           <td>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteItem(item._id, item.title)}
-                              className="btn btn-danger btn-sm"
-                              title="Delete Item"
-                            >
-                              🗑 Delete
-                            </button>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <Link
+                                to={`/edit-item/${item._id}`}
+                                state={{ from: 'admin' }}
+                                className="btn btn-secondary btn-sm"
+                                title="Edit Item"
+                              >
+                                ✏️ Edit
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteItem(item._id, item.title)}
+                                className="btn btn-danger btn-sm"
+                                title="Delete Item"
+                              >
+                                🗑 Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

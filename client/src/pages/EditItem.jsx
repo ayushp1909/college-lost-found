@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
 
 const EditItem = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ const EditItem = () => {
     imageUrl: ''
   });
 
+  const [itemOwnerId, setItemOwnerId] = useState(null);
   const [newImageFile, setNewImageFile] = useState(null);
   const [newImagePreview, setNewImagePreview] = useState(null);
 
@@ -40,6 +42,11 @@ const EditItem = () => {
 
   const statuses = ['active', 'matched', 'claimed', 'closed'];
 
+  const fromAdmin = location.state?.from === 'admin';
+  const isOwner = user && itemOwnerId === user._id;
+  const isAdmin = user && user.role === 'admin';
+  const isEditingAsAdmin = isAdmin && !isOwner;
+
   useEffect(() => {
     const fetchItem = async () => {
       try {
@@ -47,9 +54,11 @@ const EditItem = () => {
         const data = await apiFetch(`/items/${id}`);
         const item = data.item;
 
-        // Verify ownership
+        // Verify ownership or admin role
         const ownerId = typeof item.userId === 'object' ? item.userId?._id : item.userId;
-        if (user && ownerId !== user._id) {
+        setItemOwnerId(ownerId);
+        const hasAccess = user && (ownerId === user._id || user.role === 'admin');
+        if (!hasAccess) {
           setError('Forbidden: You are not authorized to edit this item.');
           setLoading(false);
           return;
@@ -148,8 +157,12 @@ const EditItem = () => {
         }
       });
 
-      // Redirect back to item details
-      navigate(`/items/${id}`);
+      // Redirect back to admin dashboard if editing from admin, else item details
+      if (fromAdmin) {
+        navigate('/admin');
+      } else {
+        navigate(`/items/${id}`);
+      }
     } catch (err) {
       setError(err.message || 'Failed to update item.');
     } finally {
@@ -178,7 +191,7 @@ const EditItem = () => {
               type="button"
               className={`type-segmented-btn ${formData.type === 'lost' ? 'active type-lost' : ''}`}
               onClick={() => handleTypeSelect('lost')}
-              disabled={saving}
+              disabled={saving || isEditingAsAdmin}
             >
               <span>🔍</span>
               <span>Lost Item</span>
@@ -187,12 +200,17 @@ const EditItem = () => {
               type="button"
               className={`type-segmented-btn ${formData.type === 'found' ? 'active type-found' : ''}`}
               onClick={() => handleTypeSelect('found')}
-              disabled={saving}
+              disabled={saving || isEditingAsAdmin}
             >
               <span>📦</span>
               <span>Found Item</span>
             </button>
           </div>
+          {isEditingAsAdmin && (
+            <span className="form-help-text">
+              Item classification (Lost/Found) cannot be altered by admins to preserve semantic matching.
+            </span>
+          )}
         </div>
 
         {/* Title */}
@@ -351,7 +369,7 @@ const EditItem = () => {
           <button type="submit" className="btn btn-primary" disabled={saving} style={{ flex: 1 }}>
             {saving ? (saveStatus || 'Saving...') : 'Save Changes'}
           </button>
-          <Link to={`/items/${id}`} className="btn btn-secondary" style={{ flex: 1 }}>
+          <Link to={fromAdmin ? '/admin' : `/items/${id}`} className="btn btn-secondary" style={{ flex: 1 }}>
             Cancel
           </Link>
         </div>

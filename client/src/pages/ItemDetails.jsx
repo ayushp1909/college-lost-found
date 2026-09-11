@@ -93,20 +93,22 @@ const ItemDetails = () => {
             </span>
           </div>
 
-          {/* Show Edit and Delete ONLY to the owner */}
-          {isOwner && (
+          {/* Actions: Edit available to owner or admin, Delete to owner */}
+          {(isOwner || (user && user.role === 'admin')) && (
             <div className="details-actions">
               <Link to={`/edit-item/${item._id}`} className="btn btn-secondary btn-sm">
                 ✏️ Edit Report
               </Link>
-              <button
-                onClick={handleDelete}
-                className="btn btn-danger btn-sm"
-                disabled={deleting}
-                type="button"
-              >
-                {deleting ? 'Deleting...' : '🗑️ Delete'}
-              </button>
+              {isOwner && (
+                <button
+                  onClick={handleDelete}
+                  className="btn btn-danger btn-sm"
+                  disabled={deleting}
+                  type="button"
+                >
+                  {deleting ? 'Deleting...' : '🗑️ Delete'}
+                </button>
+              )}
             </div>
           )}
         </div>
