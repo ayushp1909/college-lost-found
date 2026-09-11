@@ -21,6 +21,7 @@ const FilterBar = ({
 
   return (
     <div className="filter-bar">
+      {/* Search Input Row */}
       <div className="filter-search-row">
         <div className="search-input-group">
           <span className="search-icon" aria-hidden="true">🔍</span>
@@ -39,13 +40,15 @@ const FilterBar = ({
             type="button"
             className="btn btn-secondary btn-clear-filters"
             onClick={onClearFilters}
-            title="Reset all filters and search query"
+            title="Reset all search queries and active filters"
           >
-            ✕ Clear Filters
+            <span>✕</span>
+            <span>Clear Filters</span>
           </button>
         )}
       </div>
 
+      {/* Responsive Filter Selects Row */}
       <div className="filter-controls-row">
         {/* Category Filter */}
         <div className="filter-control">
@@ -100,11 +103,9 @@ const FilterBar = ({
           </select>
         </div>
 
-        {/* Results summary counter */}
+        {/* Results Counter */}
         <div className="filter-results-info">
-          <span>
-            Showing <strong>{filteredCount}</strong> of <strong>{totalCount}</strong> items
-          </span>
+          Showing <strong>{filteredCount}</strong> of <strong>{totalCount}</strong> items
         </div>
       </div>
     </div>

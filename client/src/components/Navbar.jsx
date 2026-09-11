@@ -1,23 +1,48 @@
+import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
+    setIsOpen(false);
     logout();
     navigate('/login');
+  };
+
+  const closeMenu = () => {
+    setIsOpen(false);
   };
 
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to="/" className="nav-brand">
-          Campus Lost &amp; Found
+        {/* Brand */}
+        <Link to="/" className="nav-brand" onClick={closeMenu}>
+          <span className="nav-brand-icon" aria-hidden="true">📍</span>
+          <span>Campus Lost &amp; Found</span>
         </Link>
 
-        <div className="nav-links">
+        {/* Mobile Hamburger Button */}
+        <button
+          type="button"
+          className={`nav-toggle ${isOpen ? 'open' : ''}`}
+          onClick={() => setIsOpen((prev) => !prev)}
+          aria-expanded={isOpen}
+          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+        >
+          <div className="hamburger-icon">
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+          </div>
+        </button>
+
+        {/* Desktop Navigation Links */}
+        <div className="nav-menu">
           <NavLink to="/" end className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
             Home
           </NavLink>
@@ -41,8 +66,11 @@ const Navbar = () => {
                   Admin
                 </NavLink>
               )}
-              <span className="nav-user-greeting">Hi, {user?.name}</span>
-              <button onClick={handleLogout} className="btn-logout">
+              <div className="nav-user-chip">
+                <span>Hi, {user?.name}</span>
+                {user?.role === 'admin' && <span className="nav-role-badge">Admin</span>}
+              </div>
+              <button onClick={handleLogout} className="btn-logout" type="button">
                 Logout
               </button>
             </>
@@ -58,6 +86,55 @@ const Navbar = () => {
           )}
         </div>
       </div>
+
+      {/* Mobile Collapsible Drawer */}
+      {isOpen && (
+        <div className="mobile-nav-drawer">
+          <NavLink to="/" end className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')} onClick={closeMenu}>
+            Home
+          </NavLink>
+
+          {isAuthenticated ? (
+            <>
+              <NavLink to="/lost-items" className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')} onClick={closeMenu}>
+                Lost Items
+              </NavLink>
+              <NavLink to="/found-items" className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')} onClick={closeMenu}>
+                Found Items
+              </NavLink>
+              <NavLink to="/post-item" className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')} onClick={closeMenu}>
+                + Post Item
+              </NavLink>
+              <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')} onClick={closeMenu}>
+                Dashboard
+              </NavLink>
+              {user?.role === 'admin' && (
+                <NavLink to="/admin" className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')} onClick={closeMenu}>
+                  🛡️ Admin Panel
+                </NavLink>
+              )}
+              <div className="mobile-user-section">
+                <div className="mobile-user-info">
+                  <span>Signed in as <strong>{user?.name}</strong></span>
+                  {user?.role === 'admin' && <span className="badge badge-match">Admin</span>}
+                </div>
+                <button onClick={handleLogout} className="btn-mobile-logout" type="button">
+                  Logout
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <NavLink to="/login" className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')} onClick={closeMenu}>
+                Login
+              </NavLink>
+              <NavLink to="/register" className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')} onClick={closeMenu}>
+                Register
+              </NavLink>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 };

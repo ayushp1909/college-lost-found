@@ -30,7 +30,9 @@ const ItemDetails = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    const confirmed = window.confirm('Are you sure you want to delete this item? This action cannot be undone.');
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this item? This action cannot be undone.'
+    );
     if (!confirmed) return;
 
     setDeleting(true);
@@ -63,7 +65,7 @@ const ItemDetails = () => {
       })
     : 'Unknown Date';
 
-  const ownerName = typeof item.userId === 'object' ? item.userId?.name : 'User';
+  const ownerName = typeof item.userId === 'object' ? item.userId?.name : 'Anonymous';
 
   return (
     <div className="details-container">
@@ -74,19 +76,20 @@ const ItemDetails = () => {
             <img src={item.imageUrl} alt={item.title} className="details-image" />
           ) : (
             <div className="details-image-placeholder">
-              <span className="placeholder-icon">📦</span>
+              <span className="placeholder-icon" aria-hidden="true">📦</span>
               <span className="placeholder-text">No image uploaded for this item</span>
             </div>
           )}
         </div>
 
+        {/* Badges & Owner Action Header */}
         <div className="details-header">
-          <div>
-            <span className={`badge badge-type badge-${item.type}`}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span className={`badge badge-${item.type}`}>
               {item.type.toUpperCase()}
             </span>
-            <span className={`badge badge-status badge-status-${item.status}`}>
-              {item.status}
+            <span className={`badge badge-status-${item.status}`}>
+              {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
             </span>
           </div>
 
@@ -94,12 +97,13 @@ const ItemDetails = () => {
           {isOwner && (
             <div className="details-actions">
               <Link to={`/edit-item/${item._id}`} className="btn btn-secondary btn-sm">
-                ✏️ Edit
+                ✏️ Edit Report
               </Link>
               <button
                 onClick={handleDelete}
                 className="btn btn-danger btn-sm"
                 disabled={deleting}
+                type="button"
               >
                 {deleting ? 'Deleting...' : '🗑️ Delete'}
               </button>
@@ -107,20 +111,22 @@ const ItemDetails = () => {
           )}
         </div>
 
+        {/* Title */}
         <h1 className="details-title">{item.title}</h1>
 
+        {/* Structured Metadata Grid */}
         <div className="details-meta-grid">
           <div className="meta-item">
             <span className="meta-label">Category</span>
             <span className="meta-value">{item.category}</span>
           </div>
           <div className="meta-item">
-            <span className="meta-label">Location</span>
+            <span className="meta-label">Campus Location</span>
             <span className="meta-value">📍 {item.location}</span>
           </div>
           <div className="meta-item">
             <span className="meta-label">Date Reported</span>
-            <span className="meta-value">🗓 {formattedDate}</span>
+            <span className="meta-value">🗓️ {formattedDate}</span>
           </div>
           <div className="meta-item">
             <span className="meta-label">Reported By</span>
@@ -128,11 +134,13 @@ const ItemDetails = () => {
           </div>
         </div>
 
+        {/* Description */}
         <div className="details-description">
           <h3>Description</h3>
           <p>{item.description}</p>
         </div>
 
+        {/* Back Navigation */}
         <div className="details-footer">
           <Link
             to={item.type === 'lost' ? '/lost-items' : '/found-items'}

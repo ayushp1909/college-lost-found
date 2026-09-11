@@ -99,6 +99,7 @@ const FoundItems = () => {
 
       {!loading && !error && items.length === 0 && (
         <div className="empty-state">
+          <span className="empty-state-icon" aria-hidden="true">📦</span>
           <p>No found items reported currently.</p>
           <Link to="/post-item" className="btn btn-secondary">
             Post a Found Item
@@ -126,6 +127,7 @@ const FoundItems = () => {
 
           {filteredItems.length === 0 ? (
             <div className="empty-state">
+              <span className="empty-state-icon" aria-hidden="true">🔎</span>
               <p>No items found matching your search.</p>
             </div>
           ) : (

@@ -57,15 +57,20 @@ const Login = () => {
 
   return (
     <div className="auth-card">
-      <h2>Welcome Back</h2>
-      <p className="auth-subtitle">Log in to manage your lost &amp; found items</p>
+      <div className="auth-header" style={{ textAlign: 'center' }}>
+        <div className="auth-brand-badge" aria-hidden="true">
+          📍
+        </div>
+        <h2>Welcome Back</h2>
+        <p className="auth-subtitle">Log in to manage your campus lost &amp; found items</p>
+      </div>
 
       {successMessage && <div className="alert alert-success">{successMessage}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
       <form onSubmit={handleSubmit} className="form">
         <div className="form-group">
-          <label htmlFor="email">Email Address</label>
+          <label htmlFor="email">College Email Address</label>
           <input
             id="email"
             type="email"
@@ -74,6 +79,7 @@ const Login = () => {
             value={formData.email}
             onChange={handleChange}
             disabled={loading}
+            autoComplete="email"
             required
           />
         </div>
@@ -84,10 +90,11 @@ const Login = () => {
             id="password"
             type="password"
             name="password"
-            placeholder="Your password"
+            placeholder="Enter your password"
             value={formData.password}
             onChange={handleChange}
             disabled={loading}
+            autoComplete="current-password"
             required
           />
         </div>
@@ -98,7 +105,7 @@ const Login = () => {
       </form>
 
       <p className="auth-footer">
-        Don't have an account? <Link to="/register">Create one</Link>
+        Don't have an account? <Link to="/register">Create an account</Link>
       </p>
     </div>
   );

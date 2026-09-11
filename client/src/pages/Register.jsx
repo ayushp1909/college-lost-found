@@ -24,7 +24,7 @@ const Register = () => {
 
     // Client-side validation
     if (!formData.name.trim() || !formData.email.trim() || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all fields.');
+      setError('Please fill in all required fields.');
       return;
     }
 
@@ -52,7 +52,7 @@ const Register = () => {
 
       // On success, redirect to /login
       navigate('/login', {
-        state: { message: 'Registration successful! Please log in.' }
+        state: { message: 'Registration successful! Please log in with your credentials.' }
       });
     } catch (err) {
       setError(err.message || 'Registration failed.');
@@ -63,14 +63,19 @@ const Register = () => {
 
   return (
     <div className="auth-card">
-      <h2>Create an Account</h2>
-      <p className="auth-subtitle">Join the Campus Lost &amp; Found portal</p>
+      <div className="auth-header" style={{ textAlign: 'center' }}>
+        <div className="auth-brand-badge" aria-hidden="true">
+          📍
+        </div>
+        <h2>Create an Account</h2>
+        <p className="auth-subtitle">Join the campus community to report and reclaim items</p>
+      </div>
 
       {error && <div className="alert alert-error">{error}</div>}
 
       <form onSubmit={handleSubmit} className="form">
         <div className="form-group">
-          <label htmlFor="name">Full Name</label>
+          <label htmlFor="name">Full Name *</label>
           <input
             id="name"
             type="text"
@@ -79,12 +84,13 @@ const Register = () => {
             value={formData.name}
             onChange={handleChange}
             disabled={loading}
+            autoComplete="name"
             required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="email">College Email</label>
+          <label htmlFor="email">College Email *</label>
           <input
             id="email"
             type="email"
@@ -93,12 +99,13 @@ const Register = () => {
             value={formData.email}
             onChange={handleChange}
             disabled={loading}
+            autoComplete="email"
             required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">Password *</label>
           <input
             id="password"
             type="password"
@@ -107,20 +114,22 @@ const Register = () => {
             value={formData.password}
             onChange={handleChange}
             disabled={loading}
+            autoComplete="new-password"
             required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="confirmPassword">Confirm Password</label>
+          <label htmlFor="confirmPassword">Confirm Password *</label>
           <input
             id="confirmPassword"
             type="password"
             name="confirmPassword"
-            placeholder="Re-enter password"
+            placeholder="Re-enter your password"
             value={formData.confirmPassword}
             onChange={handleChange}
             disabled={loading}
+            autoComplete="new-password"
             required
           />
         </div>

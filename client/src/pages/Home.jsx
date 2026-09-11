@@ -2,21 +2,25 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="home-container">
+      {/* Hero Section */}
       <section className="hero-section">
-        <h1 className="hero-title">College Campus Lost &amp; Found</h1>
+        <div className="hero-badge">
+          <span>Campus Portal</span>
+        </div>
+        <h1 className="hero-title">Find what you lost. Return what you found.</h1>
         <p className="hero-subtitle">
-          Easily report lost belongings or post items you have found around campus.
+          A centralized campus Lost &amp; Found portal for reporting, discovering, and recovering misplaced items.
         </p>
 
         <div className="hero-actions">
           {isAuthenticated ? (
             <>
               <Link to="/post-item" className="btn btn-primary">
-                Post an Item
+                + Report an Item
               </Link>
               <Link to="/lost-items" className="btn btn-secondary">
                 Browse Lost Items
@@ -38,18 +42,43 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="features-grid">
-        <div className="feature-card">
-          <h3>🔍 Report Lost Items</h3>
-          <p>Misplaced your keys, wallet, or ID card? Post details so fellow students can help you find it.</p>
-        </div>
-        <div className="feature-card">
-          <h3>📦 Post Found Items</h3>
-          <p>Found something on campus? Post the location and description to help the owner reclaim it safely.</p>
-        </div>
-        <div className="feature-card">
-          <h3>🔒 Verified Campus Community</h3>
-          <p>Secure authentication ensures items are managed safely and owners maintain full control of their listings.</p>
+      {/* How It Works Section */}
+      <section>
+        <h2 className="section-title">How It Works</h2>
+        <p className="section-desc">
+          A simple, automated workflow designed to connect misplaced items with their rightful owners across campus.
+        </p>
+
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon-wrapper" aria-hidden="true">
+              📝
+            </div>
+            <h3>1. Report or Post</h3>
+            <p>
+              Misplaced or found an item? Submit key details including title, category, campus location, date, and an optional image.
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon-wrapper" aria-hidden="true">
+              ⚡
+            </div>
+            <h3>2. Semantic AI Matching</h3>
+            <p>
+              Google Gemini text embeddings automatically analyze descriptions to surface potential matches between lost and found items.
+            </p>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon-wrapper" aria-hidden="true">
+              🤝
+            </div>
+            <h3>3. Connect &amp; Recover</h3>
+            <p>
+              Review item details and locations through the platform to coordinate smooth recovery of your belongings.
+            </p>
+          </div>
         </div>
       </section>
     </div>

@@ -80,6 +80,11 @@ const EditItem = () => {
     setError('');
   };
 
+  const handleTypeSelect = (selectedType) => {
+    setFormData({ ...formData, type: selectedType });
+    setError('');
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -157,42 +162,42 @@ const EditItem = () => {
 
   return (
     <div className="form-card">
-      <h2>Edit Item</h2>
-      <p className="form-subtitle">Update item information, status, or image</p>
+      <div className="form-header">
+        <h2>Edit Item</h2>
+        <p className="form-subtitle">Update item information, status, or image</p>
+      </div>
 
       {error && <div className="alert alert-error">{error}</div>}
 
       <form onSubmit={handleSubmit} className="form">
+        {/* Segmented Type Toggle */}
         <div className="form-group">
-          <label>Item Type</label>
-          <div className="radio-group">
-            <label className="radio-label">
-              <input
-                type="radio"
-                name="type"
-                value="lost"
-                checked={formData.type === 'lost'}
-                onChange={handleChange}
-                disabled={saving}
-              />
-              <span>Lost</span>
-            </label>
-            <label className="radio-label">
-              <input
-                type="radio"
-                name="type"
-                value="found"
-                checked={formData.type === 'found'}
-                onChange={handleChange}
-                disabled={saving}
-              />
-              <span>Found</span>
-            </label>
+          <label>Item Classification</label>
+          <div className="type-segmented-control" role="group" aria-label="Select Lost or Found">
+            <button
+              type="button"
+              className={`type-segmented-btn ${formData.type === 'lost' ? 'active type-lost' : ''}`}
+              onClick={() => handleTypeSelect('lost')}
+              disabled={saving}
+            >
+              <span>🔍</span>
+              <span>Lost Item</span>
+            </button>
+            <button
+              type="button"
+              className={`type-segmented-btn ${formData.type === 'found' ? 'active type-found' : ''}`}
+              onClick={() => handleTypeSelect('found')}
+              disabled={saving}
+            >
+              <span>📦</span>
+              <span>Found Item</span>
+            </button>
           </div>
         </div>
 
+        {/* Title */}
         <div className="form-group">
-          <label htmlFor="title">Item Title</label>
+          <label htmlFor="title">Item Title *</label>
           <input
             id="title"
             type="text"
@@ -204,8 +209,9 @@ const EditItem = () => {
           />
         </div>
 
+        {/* Status */}
         <div className="form-group">
-          <label htmlFor="status">Item Status</label>
+          <label htmlFor="status">Item Status *</label>
           <select
             id="status"
             name="status"
@@ -216,14 +222,15 @@ const EditItem = () => {
           >
             {statuses.map((st) => (
               <option key={st} value={st}>
-                {st.toUpperCase()}
+                {st.charAt(0).toUpperCase() + st.slice(1)}
               </option>
             ))}
           </select>
         </div>
 
+        {/* Category */}
         <div className="form-group">
-          <label htmlFor="category">Category</label>
+          <label htmlFor="category">Category *</label>
           <select
             id="category"
             name="category"
@@ -241,8 +248,9 @@ const EditItem = () => {
           </select>
         </div>
 
+        {/* Location */}
         <div className="form-group">
-          <label htmlFor="location">Campus Location</label>
+          <label htmlFor="location">Campus Location *</label>
           <input
             id="location"
             type="text"
@@ -254,8 +262,9 @@ const EditItem = () => {
           />
         </div>
 
+        {/* Date */}
         <div className="form-group">
-          <label htmlFor="date">Date</label>
+          <label htmlFor="date">Date *</label>
           <input
             id="date"
             type="date"
@@ -274,7 +283,7 @@ const EditItem = () => {
           {/* Show existing image if present and no new replacement chosen */}
           {formData.imageUrl && !newImagePreview && (
             <div className="image-preview-container">
-              <p className="meta-label">Current Image:</p>
+              <span className="meta-label">Current Image:</span>
               <img src={formData.imageUrl} alt="Current item" className="image-preview" />
               <button
                 type="button"
@@ -290,7 +299,7 @@ const EditItem = () => {
           {/* Show new replacement image preview */}
           {newImagePreview && (
             <div className="image-preview-container">
-              <p className="meta-label">New Replacement Image:</p>
+              <span className="meta-label">New Replacement Image:</span>
               <img src={newImagePreview} alt="New preview" className="image-preview" />
               <button
                 type="button"
@@ -303,21 +312,29 @@ const EditItem = () => {
             </div>
           )}
 
-          <label htmlFor="newImage" className="form-sublabel">
-            {formData.imageUrl ? 'Replace with new image:' : 'Add an image:'}
-          </label>
-          <input
-            id="newImage"
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={handleImageChange}
-            disabled={saving}
-          />
-          <small className="form-help-text">Max size: 5MB. Formats: JPEG, PNG, WEBP, GIF.</small>
+          {!newImagePreview && (
+            <div className="dropzone-container" style={{ marginTop: '8px' }}>
+              <input
+                id="newImage"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleImageChange}
+                disabled={saving}
+                className="dropzone-file-input"
+                aria-label="Upload replacement image"
+              />
+              <div className="dropzone-icon" aria-hidden="true">📷</div>
+              <div className="dropzone-title">
+                {formData.imageUrl ? 'Click or tap to replace with a new image' : 'Click or tap to upload a photo'}
+              </div>
+              <div className="dropzone-subtitle">JPEG, PNG, WEBP, or GIF (max 5MB)</div>
+            </div>
+          )}
         </div>
 
+        {/* Detailed Description */}
         <div className="form-group">
-          <label htmlFor="description">Detailed Description</label>
+          <label htmlFor="description">Detailed Description *</label>
           <textarea
             id="description"
             name="description"
@@ -329,11 +346,12 @@ const EditItem = () => {
           ></textarea>
         </div>
 
+        {/* Action Buttons */}
         <div className="form-actions-inline">
-          <button type="submit" className="btn btn-primary" disabled={saving}>
+          <button type="submit" className="btn btn-primary" disabled={saving} style={{ flex: 1 }}>
             {saving ? (saveStatus || 'Saving...') : 'Save Changes'}
           </button>
-          <Link to={`/items/${id}`} className="btn btn-secondary">
+          <Link to={`/items/${id}`} className="btn btn-secondary" style={{ flex: 1 }}>
             Cancel
           </Link>
         </div>

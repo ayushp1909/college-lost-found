@@ -86,7 +86,7 @@ const LostItems = () => {
       <div className="page-header">
         <div>
           <h2>Lost Items</h2>
-          <p className="page-subtitle">Browse items reported lost on campus</p>
+          <p className="page-subtitle">Browse items reported missing on campus</p>
         </div>
         <Link to="/post-item" className="btn btn-primary">
           + Report Lost Item
@@ -99,6 +99,7 @@ const LostItems = () => {
 
       {!loading && !error && items.length === 0 && (
         <div className="empty-state">
+          <span className="empty-state-icon" aria-hidden="true">🔍</span>
           <p>No lost items reported currently.</p>
           <Link to="/post-item" className="btn btn-secondary">
             Report a Lost Item
@@ -126,6 +127,7 @@ const LostItems = () => {
 
           {filteredItems.length === 0 ? (
             <div className="empty-state">
+              <span className="empty-state-icon" aria-hidden="true">🔎</span>
               <p>No items found matching your search.</p>
             </div>
           ) : (

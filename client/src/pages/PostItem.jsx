@@ -37,6 +37,11 @@ const PostItem = () => {
     setError('');
   };
 
+  const handleTypeSelect = (selectedType) => {
+    setFormData({ ...formData, type: selectedType });
+    setError('');
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -86,7 +91,7 @@ const PostItem = () => {
         finalImageUrl = uploadData.imageUrl;
       }
 
-      setUploadStatus('Saving item details...');
+      setUploadStatus('Saving report details...');
 
       // Post item with optional imageUrl
       await apiFetch('/items', {
@@ -113,47 +118,47 @@ const PostItem = () => {
 
   return (
     <div className="form-card">
-      <h2>Report Lost or Found Item</h2>
-      <p className="form-subtitle">Fill in the details accurately to assist identification</p>
+      <div className="form-header">
+        <h2>Report Lost or Found Item</h2>
+        <p className="form-subtitle">Fill in accurate details to help campus recovery</p>
+      </div>
 
       {error && <div className="alert alert-error">{error}</div>}
 
       <form onSubmit={handleSubmit} className="form">
+        {/* Modern Segmented Lost / Found Toggle */}
         <div className="form-group">
-          <label>Item Type</label>
-          <div className="radio-group">
-            <label className="radio-label">
-              <input
-                type="radio"
-                name="type"
-                value="lost"
-                checked={formData.type === 'lost'}
-                onChange={handleChange}
-                disabled={loading}
-              />
-              <span>Lost</span>
-            </label>
-            <label className="radio-label">
-              <input
-                type="radio"
-                name="type"
-                value="found"
-                checked={formData.type === 'found'}
-                onChange={handleChange}
-                disabled={loading}
-              />
-              <span>Found</span>
-            </label>
+          <label>Item Classification</label>
+          <div className="type-segmented-control" role="group" aria-label="Select Lost or Found">
+            <button
+              type="button"
+              className={`type-segmented-btn ${formData.type === 'lost' ? 'active type-lost' : ''}`}
+              onClick={() => handleTypeSelect('lost')}
+              disabled={loading}
+            >
+              <span>🔍</span>
+              <span>I Lost Something</span>
+            </button>
+            <button
+              type="button"
+              className={`type-segmented-btn ${formData.type === 'found' ? 'active type-found' : ''}`}
+              onClick={() => handleTypeSelect('found')}
+              disabled={loading}
+            >
+              <span>📦</span>
+              <span>I Found Something</span>
+            </button>
           </div>
         </div>
 
+        {/* Title */}
         <div className="form-group">
-          <label htmlFor="title">Item Title</label>
+          <label htmlFor="title">Item Title *</label>
           <input
             id="title"
             type="text"
             name="title"
-            placeholder="e.g. Blue Dell Laptop Charger"
+            placeholder="e.g. Black Leather Bifold Wallet"
             value={formData.title}
             onChange={handleChange}
             disabled={loading}
@@ -161,8 +166,9 @@ const PostItem = () => {
           />
         </div>
 
+        {/* Category */}
         <div className="form-group">
-          <label htmlFor="category">Category</label>
+          <label htmlFor="category">Category *</label>
           <select
             id="category"
             name="category"
@@ -180,13 +186,14 @@ const PostItem = () => {
           </select>
         </div>
 
+        {/* Location */}
         <div className="form-group">
-          <label htmlFor="location">Campus Location</label>
+          <label htmlFor="location">Campus Location *</label>
           <input
             id="location"
             type="text"
             name="location"
-            placeholder="e.g. Central Library, 2nd Floor Reading Room"
+            placeholder="e.g. Central Library Floor 2, Study Room"
             value={formData.location}
             onChange={handleChange}
             disabled={loading}
@@ -194,8 +201,9 @@ const PostItem = () => {
           />
         </div>
 
+        {/* Date */}
         <div className="form-group">
-          <label htmlFor="date">Date</label>
+          <label htmlFor="date">Date *</label>
           <input
             id="date"
             type="date"
@@ -207,21 +215,28 @@ const PostItem = () => {
           />
         </div>
 
-        {/* Optional Image Upload */}
+        {/* Image Upload Area with Modern Dropzone Style */}
         <div className="form-group">
-          <label htmlFor="image">Item Image (Optional)</label>
-          <input
-            id="image"
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={handleImageChange}
-            disabled={loading}
-          />
-          <small className="form-help-text">Max size: 5MB. Formats: JPEG, PNG, WEBP, GIF.</small>
+          <label>Item Image (Optional)</label>
 
-          {imagePreview && (
+          {!imagePreview ? (
+            <div className="dropzone-container">
+              <input
+                id="image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleImageChange}
+                disabled={loading}
+                className="dropzone-file-input"
+                aria-label="Upload item image"
+              />
+              <div className="dropzone-icon" aria-hidden="true">📷</div>
+              <div className="dropzone-title">Click or tap to upload a photo</div>
+              <div className="dropzone-subtitle">JPEG, PNG, WEBP, or GIF (max 5MB)</div>
+            </div>
+          ) : (
             <div className="image-preview-container">
-              <img src={imagePreview} alt="Preview" className="image-preview" />
+              <img src={imagePreview} alt="Selected item preview" className="image-preview" />
               <button
                 type="button"
                 onClick={handleRemoveImage}
@@ -234,13 +249,14 @@ const PostItem = () => {
           )}
         </div>
 
+        {/* Detailed Description */}
         <div className="form-group">
-          <label htmlFor="description">Detailed Description</label>
+          <label htmlFor="description">Detailed Description *</label>
           <textarea
             id="description"
             name="description"
             rows="4"
-            placeholder="Provide identifiable details, colors, marks, or condition..."
+            placeholder="Provide identifiable markings, brand, colors, condition, or items inside..."
             value={formData.description}
             onChange={handleChange}
             disabled={loading}
@@ -248,8 +264,9 @@ const PostItem = () => {
           ></textarea>
         </div>
 
+        {/* Submit Action */}
         <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-          {loading ? (uploadStatus || 'Submitting...') : 'Post Item'}
+          {loading ? (uploadStatus || 'Submitting...') : (formData.type === 'lost' ? 'Submit Lost Report' : 'Post Found Item')}
         </button>
       </form>
     </div>

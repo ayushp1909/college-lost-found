@@ -66,21 +66,22 @@ const AdminDashboard = () => {
 
   return (
     <div className="page-container">
+      {/* Page Header */}
       <div className="page-header">
         <div>
           <h2>Admin Dashboard</h2>
-          <p className="page-subtitle">Campus Lost &amp; Found System Overview &amp; Moderation</p>
+          <p className="page-subtitle">Campus Lost &amp; Found System Moderation &amp; Directory</p>
         </div>
       </div>
 
       {actionMessage && <div className="alert alert-success">{actionMessage}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
-      {loading && <div className="loading-state">Loading administrative data...</div>}
+      {loading && <div className="loading-state">Loading administrative metrics...</div>}
 
       {!loading && stats && (
         <>
-          {/* Statistics Grid */}
+          {/* System Metrics Overview (2-col mobile, 4-col desktop) */}
           <div className="stats-grid">
             <div className="stat-card">
               <span className="stat-number">{stats.totalUsers}</span>
@@ -123,27 +124,30 @@ const AdminDashboard = () => {
               className={`btn ${activeTab === 'items' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setActiveTab('items')}
             >
-              All Items ({items.length})
+              📦 All Items ({items.length})
             </button>
             <button
               type="button"
               className={`btn ${activeTab === 'users' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setActiveTab('users')}
             >
-              Registered Users ({users.length})
+              👥 Registered Users ({users.length})
             </button>
           </div>
 
-          {/* All Items Moderation Table */}
+          {/* Tab 1: All Items Moderation */}
           {activeTab === 'items' && (
             <section className="dashboard-section">
               <div className="section-header">
-                <h3>Campus Items ({items.length})</h3>
-                <p className="section-subtitle">Manage or moderate all lost and found reports</p>
+                <h3>Campus Items Moderation ({items.length})</h3>
+                <p className="section-subtitle">Review, monitor, and safely moderate all campus reports</p>
               </div>
 
               {items.length === 0 ? (
-                <div className="empty-state">No items reported in the system.</div>
+                <div className="empty-state">
+                  <span className="empty-state-icon" aria-hidden="true">📦</span>
+                  <p>No items reported in the system.</p>
+                </div>
               ) : (
                 <div className="table-wrapper">
                   <table className="admin-table">
@@ -154,7 +158,7 @@ const AdminDashboard = () => {
                         <th>Category</th>
                         <th>Location</th>
                         <th>Status</th>
-                        <th>Owner</th>
+                        <th>Reporter</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -165,14 +169,14 @@ const AdminDashboard = () => {
                             <strong>{item.title}</strong>
                           </td>
                           <td>
-                            <span className={`badge badge-type badge-${item.type}`}>
+                            <span className={`badge badge-${item.type}`}>
                               {item.type.toUpperCase()}
                             </span>
                           </td>
                           <td>{item.category}</td>
                           <td>📍 {item.location}</td>
                           <td>
-                            <span className={`badge badge-status badge-status-${item.status}`}>
+                            <span className={`badge badge-status-${item.status}`}>
                               {item.status}
                             </span>
                           </td>
@@ -196,25 +200,28 @@ const AdminDashboard = () => {
             </section>
           )}
 
-          {/* Registered Users Table */}
+          {/* Tab 2: Registered Users Directory */}
           {activeTab === 'users' && (
             <section className="dashboard-section">
               <div className="section-header">
-                <h3>Registered Users ({users.length})</h3>
-                <p className="section-subtitle">Safe user directory (passwords never exposed)</p>
+                <h3>Registered Users Directory ({users.length})</h3>
+                <p className="section-subtitle">Safe user directory (passwords and hashes are strictly protected)</p>
               </div>
 
               {users.length === 0 ? (
-                <div className="empty-state">No registered users found.</div>
+                <div className="empty-state">
+                  <span className="empty-state-icon" aria-hidden="true">👥</span>
+                  <p>No registered users found.</p>
+                </div>
               ) : (
                 <div className="table-wrapper">
                   <table className="admin-table">
                     <thead>
                       <tr>
                         <th>Name</th>
-                        <th>Email</th>
+                        <th>College Email</th>
                         <th>Role</th>
-                        <th>Registered Date</th>
+                        <th>Registration Date</th>
                       </tr>
                     </thead>
                     <tbody>

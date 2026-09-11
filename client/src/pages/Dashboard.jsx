@@ -55,16 +55,27 @@ const Dashboard = () => {
 
   return (
     <div className="page-container">
+      {/* Welcome Header */}
       <div className="dashboard-welcome">
-        <h2>Welcome back, {user?.name}!</h2>
-        <p className="dashboard-role">Role: <span className="badge badge-secondary">{user?.role || 'student'}</span></p>
+        <div>
+          <h2>Welcome back, {user?.name}!</h2>
+          <p className="dashboard-role">
+            Account Role: <span className="badge badge-secondary">{user?.role || 'student'}</span>
+          </p>
+        </div>
+
+        <div className="dashboard-actions">
+          <Link to="/post-item" className="btn btn-primary">
+            + Report New Item
+          </Link>
+        </div>
       </div>
 
-      {/* Item summary statistics */}
+      {/* Item Summary Statistics (2-column compact on mobile, 6-col on desktop) */}
       <div className="stats-grid">
         <div className="stat-card">
           <span className="stat-number">{myItems.length}</span>
-          <span className="stat-label">Total Items Reported</span>
+          <span className="stat-label">Total Reports</span>
         </div>
         <div className="stat-card">
           <span className="stat-number">{myLostItems.length}</span>
@@ -80,36 +91,34 @@ const Dashboard = () => {
         </div>
         <div className="stat-card">
           <span className="stat-number">{matches.length}</span>
-          <span className="stat-label">Potential Matches</span>
+          <span className="stat-label">AI Matches</span>
         </div>
         <div className="stat-card">
           <span className="stat-number">{resolvedCount}</span>
-          <span className="stat-label">Claimed / Closed</span>
+          <span className="stat-label">Resolved</span>
         </div>
       </div>
 
-      <div className="dashboard-actions">
-        <Link to="/post-item" className="btn btn-primary">
-          + Report New Item
-        </Link>
-      </div>
-
-      {loading && <div className="loading-state">Loading your dashboard...</div>}
+      {loading && <div className="loading-state">Loading your campus dashboard...</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
       {!loading && !error && (
         <>
-          {/* Potential Matches Section */}
+          {/* Section 1: Potential AI Matches */}
           <section className="dashboard-section">
             <div className="section-header">
               <h3>Potential Matches ({matches.length})</h3>
               <p className="section-subtitle">
-                AI semantic suggestions matching your active reports with opposite items across campus
+                AI semantic suggestions calculated from item descriptions across campus. Review details to verify ownership.
               </p>
             </div>
 
             {matches.length === 0 ? (
-              <p className="text-muted">No potential matches found for your active reports currently.</p>
+              <div className="empty-state">
+                <span className="empty-state-icon" aria-hidden="true">✨</span>
+                <p>No potential AI matches found for your active reports right now.</p>
+                <span className="text-muted">When opposite items with similar descriptions are reported, they will appear here.</span>
+              </div>
             ) : (
               <div className="matches-grid">
                 {matches.map((m) => (
@@ -124,7 +133,7 @@ const Dashboard = () => {
                         />
                       ) : (
                         <div className="match-image-placeholder">
-                          <span>📦 No Image</span>
+                          <span>📦 No image uploaded</span>
                         </div>
                       )}
                     </div>
@@ -132,30 +141,33 @@ const Dashboard = () => {
                     <div className="match-card-content">
                       <div className="match-card-badges">
                         <span className="badge badge-match">Potential Match</span>
-                        <span className="match-score">Similarity: {m.similarityPercentage}%</span>
+                        <span className="match-score">{m.similarityPercentage}% Match</span>
                       </div>
 
                       <h4 className="match-card-title">{m.matchedItem?.title}</h4>
 
-                      <p className="match-source-info">
+                      <div className="match-source-info">
                         For your report: <strong>"{m.sourceItem?.title}"</strong>
-                      </p>
+                      </div>
 
                       <div className="match-card-details">
-                        <p className="match-detail-line">
-                          <span>Type:</span> <strong className={`type-tag type-${m.matchedItem?.type}`}>{m.matchedItem?.type?.toUpperCase()}</strong>
-                        </p>
-                        <p className="match-detail-line">
+                        <div className="match-detail-line">
+                          <span>Type:</span>{' '}
+                          <span className={`type-tag type-${m.matchedItem?.type}`}>
+                            {m.matchedItem?.type?.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="match-detail-line">
                           <span>Category:</span> <strong>{m.matchedItem?.category}</strong>
-                        </p>
-                        <p className="match-detail-line">
+                        </div>
+                        <div className="match-detail-line">
                           <span>Location:</span> 📍 <strong>{m.matchedItem?.location}</strong>
-                        </p>
+                        </div>
                       </div>
 
                       <div className="match-card-footer">
                         <Link to={`/items/${m.matchedItem?._id}`} className="btn btn-primary btn-sm">
-                          View Details
+                          View Details &rarr;
                         </Link>
                       </div>
                     </div>
@@ -165,13 +177,20 @@ const Dashboard = () => {
             )}
           </section>
 
-          {/* My Lost Items Section */}
+          {/* Section 2: My Lost Items */}
           <section className="dashboard-section">
             <div className="section-header">
               <h3>My Lost Items ({myLostItems.length})</h3>
+              <p className="section-subtitle">Items you have reported missing on campus</p>
             </div>
             {myLostItems.length === 0 ? (
-              <p className="text-muted">You have not reported any lost items.</p>
+              <div className="empty-state">
+                <span className="empty-state-icon" aria-hidden="true">🔍</span>
+                <p>You have not reported any lost items.</p>
+                <Link to="/post-item" className="btn btn-secondary btn-sm">
+                  + Report a Lost Item
+                </Link>
+              </div>
             ) : (
               <div className="items-grid">
                 {myLostItems.map((item) => (
@@ -181,13 +200,20 @@ const Dashboard = () => {
             )}
           </section>
 
-          {/* My Found Items Section */}
+          {/* Section 3: My Found Items */}
           <section className="dashboard-section">
             <div className="section-header">
               <h3>My Found Items ({myFoundItems.length})</h3>
+              <p className="section-subtitle">Items you have discovered and posted to help others</p>
             </div>
             {myFoundItems.length === 0 ? (
-              <p className="text-muted">You have not reported any found items.</p>
+              <div className="empty-state">
+                <span className="empty-state-icon" aria-hidden="true">📦</span>
+                <p>You have not reported any found items.</p>
+                <Link to="/post-item" className="btn btn-secondary btn-sm">
+                  + Post a Found Item
+                </Link>
+              </div>
             ) : (
               <div className="items-grid">
                 {myFoundItems.map((item) => (
