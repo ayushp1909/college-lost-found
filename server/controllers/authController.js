@@ -3,6 +3,20 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 
+/**
+ * Validate that an email belongs strictly to the @kiet.edu institutional domain.
+ * Must match ^[^\s@]+@kiet\.edu$ (case-insensitive).
+ *
+ * @param {string} email
+ * @returns {boolean}
+ */
+const isKietEmail = (email) => {
+  if (typeof email !== 'string') return false;
+  const trimmed = email.trim().toLowerCase();
+  const kietRegex = /^[^\s@]+@kiet\.edu$/i;
+  return kietRegex.test(trimmed);
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -18,8 +32,18 @@ const register = async (req, res) => {
       });
     }
 
-    // Check if user already exists
+    // Normalize email
     const normalizedEmail = email.toLowerCase().trim();
+
+    // Check KIET institutional email eligibility
+    if (!isKietEmail(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Registration is restricted to @kiet.edu email addresses.'
+      });
+    }
+
+    // Check if user already exists
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({
@@ -153,5 +177,6 @@ const getMe = async (req, res) => {
 module.exports = {
   register,
   login,
-  getMe
+  getMe,
+  isKietEmail
 };

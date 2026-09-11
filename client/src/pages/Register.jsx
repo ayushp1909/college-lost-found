@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 
+const isKietEmail = (email) => {
+  if (typeof email !== 'string') return false;
+  return /^[^\s@]+@kiet\.edu$/i.test(email.trim().toLowerCase());
+};
+
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -25,6 +30,12 @@ const Register = () => {
     // Client-side validation
     if (!formData.name.trim() || !formData.email.trim() || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all required fields.');
+      return;
+    }
+
+    const normalizedEmail = formData.email.trim().toLowerCase();
+    if (!isKietEmail(normalizedEmail)) {
+      setError('Registration is restricted to @kiet.edu email addresses.');
       return;
     }
 
@@ -95,13 +106,14 @@ const Register = () => {
             id="email"
             type="email"
             name="email"
-            placeholder="student@college.edu"
+            placeholder="student@kiet.edu"
             value={formData.email}
             onChange={handleChange}
             disabled={loading}
             autoComplete="email"
             required
           />
+          <span className="form-help-text">Use your KIET student email (@kiet.edu)</span>
         </div>
 
         <div className="form-group">
