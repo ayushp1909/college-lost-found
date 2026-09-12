@@ -1,19 +1,18 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { DocumentIcon, SparkleIcon, CheckCircleIcon } from '../components/Icons';
 
 const Home = () => {
   const { isAuthenticated } = useAuth();
 
   return (
     <div className="home-container">
-      {/* Hero Section */}
+      {/* Editorial Gateway Hero */}
       <section className="hero-section">
-        <div className="hero-badge">
-          <span>Campus Portal</span>
-        </div>
+        <span className="hero-eyebrow">KIET Group of Institutions · Campus Directory</span>
         <h1 className="hero-title">Find what you lost. Return what you found.</h1>
         <p className="hero-subtitle">
-          A centralized campus Lost &amp; Found portal for reporting, discovering, and recovering misplaced items.
+          An authoritative campus Lost &amp; Found platform designed for reporting, discovering, and recovering misplaced items across all college blocks.
         </p>
 
         <div className="hero-actions">
@@ -42,41 +41,50 @@ const Home = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* Structured 3-Column How It Works Section */}
       <section>
         <h2 className="section-title">How It Works</h2>
         <p className="section-desc">
-          A simple, automated workflow designed to connect misplaced items with their rightful owners across campus.
+          A structured campus workflow designed to connect misplaced items with their rightful owners across campus departments.
         </p>
 
         <div className="features-grid">
           <div className="feature-card">
-            <div className="feature-icon-wrapper" aria-hidden="true">
-              📝
+            <div className="feature-step-header">
+              <span className="feature-step-num">Step 01</span>
+              <span className="feature-step-icon">
+                <DocumentIcon size={18} />
+              </span>
             </div>
-            <h3>1. Report or Post</h3>
+            <h3>Report or Post</h3>
             <p>
-              Misplaced or found an item? Submit key details including title, category, campus location, date, and an optional image.
+              Submit verified item details including title, category, campus location, date, and an optional image to the institutional registry.
             </p>
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon-wrapper" aria-hidden="true">
-              ⚡
+            <div className="feature-step-header">
+              <span className="feature-step-num">Step 02</span>
+              <span className="feature-step-icon">
+                <SparkleIcon size={18} />
+              </span>
             </div>
-            <h3>2. Semantic AI Matching</h3>
+            <h3>Semantic AI Matching</h3>
             <p>
-              Google Gemini text embeddings automatically analyze descriptions to surface potential matches between lost and found items.
+              Google Gemini text embeddings analyze descriptions to surface potential matching candidates between lost and found items.
             </p>
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon-wrapper" aria-hidden="true">
-              🤝
+            <div className="feature-step-header">
+              <span className="feature-step-num">Step 03</span>
+              <span className="feature-step-icon">
+                <CheckCircleIcon size={18} />
+              </span>
             </div>
-            <h3>3. Connect &amp; Recover</h3>
+            <h3>Connect &amp; Recover</h3>
             <p>
-              Review item details and locations through the platform to coordinate smooth recovery of your belongings.
+              Verify item details and campus locations through the platform to coordinate smooth, verified recovery of your belongings.
             </p>
           </div>
         </div>

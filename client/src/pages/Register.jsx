@@ -74,10 +74,8 @@ const Register = () => {
 
   return (
     <div className="auth-card">
-      <div className="auth-header" style={{ textAlign: 'center' }}>
-        <div className="auth-brand-badge" aria-hidden="true">
-          📍
-        </div>
+      <div className="auth-header">
+        <span className="hero-eyebrow">KIET Student Registration</span>
         <h2>Create an Account</h2>
         <p className="auth-subtitle">Join the campus community to report and reclaim items</p>
       </div>

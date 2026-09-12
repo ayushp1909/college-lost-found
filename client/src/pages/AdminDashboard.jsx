@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
+import { BoxIcon, UsersIcon, LocationIcon, EditIcon, TrashIcon } from '../components/Icons';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -125,14 +126,16 @@ const AdminDashboard = () => {
               className={`btn ${activeTab === 'items' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setActiveTab('items')}
             >
-              📦 All Items ({items.length})
+              <BoxIcon size={14} />
+              <span>All Items ({items.length})</span>
             </button>
             <button
               type="button"
               className={`btn ${activeTab === 'users' ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setActiveTab('users')}
             >
-              👥 Registered Users ({users.length})
+              <UsersIcon size={14} />
+              <span>Registered Users ({users.length})</span>
             </button>
           </div>
 
@@ -146,7 +149,9 @@ const AdminDashboard = () => {
 
               {items.length === 0 ? (
                 <div className="empty-state">
-                  <span className="empty-state-icon" aria-hidden="true">📦</span>
+                  <span className="empty-state-icon" aria-hidden="true">
+                    <BoxIcon size={32} />
+                  </span>
                   <p>No items reported in the system.</p>
                 </div>
               ) : (
@@ -175,7 +180,16 @@ const AdminDashboard = () => {
                             </span>
                           </td>
                           <td>{item.category}</td>
-                          <td>📍 {item.location}</td>
+                          <td>
+                            {item.location ? (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <LocationIcon size={12} />
+                                {item.location}
+                              </span>
+                            ) : (
+                              <span className="text-muted">—</span>
+                            )}
+                          </td>
                           <td>
                             <span className={`badge badge-status-${item.status}`}>
                               {item.status}
@@ -190,7 +204,8 @@ const AdminDashboard = () => {
                                 className="btn btn-secondary btn-sm"
                                 title="Edit Item"
                               >
-                                ✏️ Edit
+                                <EditIcon size={12} />
+                                <span>Edit</span>
                               </Link>
                               <button
                                 type="button"
@@ -198,7 +213,8 @@ const AdminDashboard = () => {
                                 className="btn btn-danger btn-sm"
                                 title="Delete Item"
                               >
-                                🗑 Delete
+                                <TrashIcon size={12} />
+                                <span>Delete</span>
                               </button>
                             </div>
                           </td>
@@ -221,7 +237,9 @@ const AdminDashboard = () => {
 
               {users.length === 0 ? (
                 <div className="empty-state">
-                  <span className="empty-state-icon" aria-hidden="true">👥</span>
+                  <span className="empty-state-icon" aria-hidden="true">
+                    <UsersIcon size={32} />
+                  </span>
                   <p>No registered users found.</p>
                 </div>
               ) : (

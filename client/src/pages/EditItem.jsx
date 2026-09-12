@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
 import { KIET_LOCATION_GROUPS, KIET_LOCATIONS_FLAT, OTHER_LOCATION_OPTION, UNKNOWN_LOCATION_OPTION } from '../constants/locations';
+import { SearchIcon, BoxIcon, UploadCloudIcon } from '../components/Icons';
 
 const getTodayString = () => {
   const now = new Date();
@@ -264,9 +265,14 @@ const EditItem = () => {
       {error && <div className="alert alert-error">{error}</div>}
 
       <form onSubmit={handleSubmit} className="form">
+        {/* Section 1: Item Classification */}
+        <div className="form-section-header">
+          <div className="form-section-title">01 · Item Classification</div>
+          <div className="form-section-desc">Item type is locked after report submission</div>
+        </div>
+
         {/* Read-Only Item Classification Indicator (P1-2) */}
         <div className="form-group">
-          <label>Item Classification</label>
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -277,29 +283,30 @@ const EditItem = () => {
             border: '1px solid var(--border-subtle)',
             flexWrap: 'wrap'
           }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontWeight: 600,
-              fontSize: 'var(--font-size-sm)',
-              padding: '5px 12px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: formData.type === 'lost' ? '#FFF1F2' : '#EFF6FF',
-              color: formData.type === 'lost' ? '#9F1239' : '#1E40AF',
-              border: `1px solid ${formData.type === 'lost' ? '#FECDD3' : '#BFDBFE'}`
-            }}>
-              {formData.type === 'lost' ? '🔍 Lost Item' : '📦 Found Item'}
+            <span className={`badge ${formData.type === 'lost' ? 'badge-lost' : 'badge-found'}`} style={{ padding: '4px 10px', fontSize: 'var(--font-size-xs)' }}>
+              {formData.type === 'lost' ? <SearchIcon size={13} /> : <BoxIcon size={13} />}
+              <span>{formData.type === 'lost' ? 'Lost Item' : 'Found Item'}</span>
             </span>
             <span className="form-help-text" style={{ margin: 0 }}>
-              Item classification (Lost/Found) cannot be changed after creation.
+              Classification (Lost/Found) cannot be modified after initial submission.
             </span>
           </div>
         </div>
 
+        {/* Section 2: Item Details */}
+        <div className="form-section-header">
+          <div className="form-section-title">02 · Item Details</div>
+          <div className="form-section-desc">Update title, moderation status, category, and description</div>
+        </div>
+
         {/* Title */}
         <div className="form-group">
-          <label htmlFor="title">Item Title *</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <label htmlFor="title">Item Title *</label>
+            <span className="text-muted" style={{ fontSize: 'var(--font-size-xs)' }}>
+              {formData.title.length}/100
+            </span>
+          </div>
           <input
             id="title"
             type="text"
@@ -351,6 +358,32 @@ const EditItem = () => {
           </select>
         </div>
 
+        {/* Detailed Description */}
+        <div className="form-group">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <label htmlFor="description">Detailed Description *</label>
+            <span className="text-muted" style={{ fontSize: 'var(--font-size-xs)' }}>
+              {formData.description.length}/1000
+            </span>
+          </div>
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            value={formData.description}
+            onChange={handleChange}
+            disabled={saving}
+            maxLength={1000}
+            required
+          ></textarea>
+        </div>
+
+        {/* Section 3: Location & Date */}
+        <div className="form-section-header">
+          <div className="form-section-title">03 · Location & Date</div>
+          <div className="form-section-desc">Specify campus zone and calendar occurrence date</div>
+        </div>
+
         {/* Location Selector (Optional per business rules) */}
         <div className="form-group">
           <label htmlFor="location-select">
@@ -364,7 +397,7 @@ const EditItem = () => {
             disabled={saving}
           >
             <option value="">-- Select Campus Location (Optional) --</option>
-            <option value={UNKNOWN_LOCATION_OPTION}>❓ {UNKNOWN_LOCATION_OPTION}</option>
+            <option value={UNKNOWN_LOCATION_OPTION}>{UNKNOWN_LOCATION_OPTION}</option>
             {KIET_LOCATION_GROUPS.map((group) => (
               <optgroup key={group.group} label={group.group}>
                 {group.locations.map((loc) => (
@@ -374,7 +407,7 @@ const EditItem = () => {
                 ))}
               </optgroup>
             ))}
-            <option value={OTHER_LOCATION_OPTION}>📍 {OTHER_LOCATION_OPTION}</option>
+            <option value={OTHER_LOCATION_OPTION}>{OTHER_LOCATION_OPTION}</option>
           </select>
         </div>
 
@@ -415,10 +448,13 @@ const EditItem = () => {
           />
         </div>
 
-        {/* Image Management */}
-        <div className="form-group">
-          <label>Item Image</label>
+        {/* Section 4: Image Management */}
+        <div className="form-section-header">
+          <div className="form-section-title">04 · Item Image</div>
+          <div className="form-section-desc">Manage or replace the photographic record</div>
+        </div>
 
+        <div className="form-group">
           {/* Show existing image if present and no new replacement chosen */}
           {formData.imageUrl && !newImagePreview && (
             <div className="image-preview-container">
@@ -430,7 +466,7 @@ const EditItem = () => {
                 className="btn btn-secondary btn-sm btn-remove-image"
                 disabled={saving}
               >
-                ✕ Remove Current Image
+                Remove Current Image
               </button>
             </div>
           )}
@@ -446,7 +482,7 @@ const EditItem = () => {
                 className="btn btn-secondary btn-sm btn-remove-image"
                 disabled={saving}
               >
-                ✕ Cancel Replacement
+                Cancel Replacement
               </button>
             </div>
           )}
@@ -462,7 +498,9 @@ const EditItem = () => {
                 className="dropzone-file-input"
                 aria-label="Upload replacement image"
               />
-              <div className="dropzone-icon" aria-hidden="true">📷</div>
+              <div className="dropzone-icon" aria-hidden="true">
+                <UploadCloudIcon size={28} />
+              </div>
               <div className="dropzone-title">
                 {formData.imageUrl ? 'Click or tap to replace with a new image' : 'Click or tap to upload a photo'}
               </div>
@@ -471,23 +509,8 @@ const EditItem = () => {
           )}
         </div>
 
-        {/* Detailed Description */}
-        <div className="form-group">
-          <label htmlFor="description">Detailed Description *</label>
-          <textarea
-            id="description"
-            name="description"
-            rows="4"
-            value={formData.description}
-            onChange={handleChange}
-            disabled={saving}
-            maxLength={1000}
-            required
-          ></textarea>
-        </div>
-
         {/* Action Buttons */}
-        <div className="form-actions-inline">
+        <div className="form-actions-inline" style={{ marginTop: '12px' }}>
           <button type="submit" className="btn btn-primary" disabled={saving} style={{ flex: 1 }}>
             {saving ? (saveStatus || 'Saving...') : 'Save Changes'}
           </button>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
 import ItemCard from '../components/ItemCard';
+import { SparkleIcon, SearchIcon, BoxIcon, LocationIcon } from '../components/Icons';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -115,7 +116,9 @@ const Dashboard = () => {
 
             {matches.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-state-icon" aria-hidden="true">✨</span>
+                <span className="empty-state-icon" aria-hidden="true">
+                  <SparkleIcon size={28} />
+                </span>
                 <p>No potential AI matches found for your active reports right now.</p>
                 <span className="text-muted">When opposite items with similar descriptions are reported, they will appear here.</span>
               </div>
@@ -133,7 +136,8 @@ const Dashboard = () => {
                         />
                       ) : (
                         <div className="match-image-placeholder">
-                          <span>📦 No image uploaded</span>
+                          <BoxIcon size={24} />
+                          <span>No photo</span>
                         </div>
                       )}
                     </div>
@@ -141,7 +145,7 @@ const Dashboard = () => {
                     <div className="match-card-content">
                       <div className="match-card-badges">
                         <span className="badge badge-match">Potential Match</span>
-                        <span className="match-score">{m.similarityPercentage}% Match</span>
+                        <span className="match-score">{m.similarityPercentage}% similarity</span>
                       </div>
 
                       <h4 className="match-card-title">{m.matchedItem?.title}</h4>
@@ -161,7 +165,11 @@ const Dashboard = () => {
                           <span>Category:</span> <strong>{m.matchedItem?.category}</strong>
                         </div>
                         <div className="match-detail-line">
-                          <span>Location:</span> 📍 <strong>{m.matchedItem?.location}</strong>
+                          <span>Location:</span>{' '}
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <LocationIcon size={12} />
+                            <strong>{m.matchedItem?.location || 'Unspecified'}</strong>
+                          </span>
                         </div>
                       </div>
 
@@ -185,7 +193,9 @@ const Dashboard = () => {
             </div>
             {myLostItems.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-state-icon" aria-hidden="true">🔍</span>
+                <span className="empty-state-icon" aria-hidden="true">
+                  <SearchIcon size={28} />
+                </span>
                 <p>You have not reported any lost items.</p>
                 <Link to="/post-item" className="btn btn-secondary btn-sm">
                   + Report a Lost Item
@@ -208,7 +218,9 @@ const Dashboard = () => {
             </div>
             {myFoundItems.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-state-icon" aria-hidden="true">📦</span>
+                <span className="empty-state-icon" aria-hidden="true">
+                  <BoxIcon size={28} />
+                </span>
                 <p>You have not reported any found items.</p>
                 <Link to="/post-item" className="btn btn-secondary btn-sm">
                   + Post a Found Item

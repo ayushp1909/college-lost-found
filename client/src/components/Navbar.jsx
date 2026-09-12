@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ShieldIcon } from './Icons';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -125,7 +126,9 @@ const Navbar = () => {
               </NavLink>
               {user?.role === 'admin' && (
                 <NavLink to="/admin" className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')} onClick={closeMenu}>
-                  🛡️ Admin Panel
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <ShieldIcon size={14} /> Admin Panel
+                  </span>
                 </NavLink>
               )}
               <div className="mobile-user-section">

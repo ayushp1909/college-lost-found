@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 import { KIET_LOCATION_GROUPS, OTHER_LOCATION_OPTION, UNKNOWN_LOCATION_OPTION } from '../constants/locations';
+import { SearchIcon, BoxIcon, UploadCloudIcon } from '../components/Icons';
 
 const getTodayString = () => {
   const now = new Date();
@@ -192,9 +193,13 @@ const PostItem = () => {
       {error && <div className="alert alert-error">{error}</div>}
 
       <form onSubmit={handleSubmit} className="form">
-        {/* Modern Segmented Lost / Found Toggle */}
+        {/* Section 1: Item Classification */}
+        <div className="form-section-header">
+          <div className="form-section-title">01 · Item Classification</div>
+          <div className="form-section-desc">Specify whether you are reporting a lost possession or a found object</div>
+        </div>
+
         <div className="form-group">
-          <label>Item Classification</label>
           <div className="type-segmented-control" role="group" aria-label="Select Lost or Found">
             <button
               type="button"
@@ -202,7 +207,7 @@ const PostItem = () => {
               onClick={() => handleTypeSelect('lost')}
               disabled={loading}
             >
-              <span>🔍</span>
+              <SearchIcon size={16} />
               <span>I Lost Something</span>
             </button>
             <button
@@ -211,15 +216,26 @@ const PostItem = () => {
               onClick={() => handleTypeSelect('found')}
               disabled={loading}
             >
-              <span>📦</span>
+              <BoxIcon size={16} />
               <span>I Found Something</span>
             </button>
           </div>
         </div>
 
+        {/* Section 2: Item Details */}
+        <div className="form-section-header">
+          <div className="form-section-title">02 · Item Details</div>
+          <div className="form-section-desc">Provide primary identifying information and description</div>
+        </div>
+
         {/* Title */}
         <div className="form-group">
-          <label htmlFor="title">Item Title *</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <label htmlFor="title">Item Title *</label>
+            <span className="text-muted" style={{ fontSize: 'var(--font-size-xs)' }}>
+              {formData.title.length}/100
+            </span>
+          </div>
           <input
             id="title"
             type="text"
@@ -253,6 +269,33 @@ const PostItem = () => {
           </select>
         </div>
 
+        {/* Detailed Description */}
+        <div className="form-group">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <label htmlFor="description">Detailed Description *</label>
+            <span className="text-muted" style={{ fontSize: 'var(--font-size-xs)' }}>
+              {formData.description.length}/1000
+            </span>
+          </div>
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            placeholder="Provide identifiable markings, brand, colors, condition, or contents inside..."
+            value={formData.description}
+            onChange={handleChange}
+            disabled={loading}
+            maxLength={1000}
+            required
+          ></textarea>
+        </div>
+
+        {/* Section 3: Where & When */}
+        <div className="form-section-header">
+          <div className="form-section-title">03 · Location & Date</div>
+          <div className="form-section-desc">Indicate campus location and the calendar date the item was lost or found</div>
+        </div>
+
         {/* Location Selector (Optional per business rules) */}
         <div className="form-group">
           <label htmlFor="location-select">
@@ -266,7 +309,7 @@ const PostItem = () => {
             disabled={loading}
           >
             <option value="">-- Select Campus Location (Optional) --</option>
-            <option value={UNKNOWN_LOCATION_OPTION}>❓ {UNKNOWN_LOCATION_OPTION}</option>
+            <option value={UNKNOWN_LOCATION_OPTION}>{UNKNOWN_LOCATION_OPTION}</option>
             {KIET_LOCATION_GROUPS.map((group) => (
               <optgroup key={group.group} label={group.group}>
                 {group.locations.map((loc) => (
@@ -276,7 +319,7 @@ const PostItem = () => {
                 ))}
               </optgroup>
             ))}
-            <option value={OTHER_LOCATION_OPTION}>📍 {OTHER_LOCATION_OPTION}</option>
+            <option value={OTHER_LOCATION_OPTION}>{OTHER_LOCATION_OPTION}</option>
           </select>
         </div>
 
@@ -317,10 +360,14 @@ const PostItem = () => {
           />
         </div>
 
-        {/* Image Upload Area with Modern Dropzone Style */}
-        <div className="form-group">
-          <label>Item Image (Optional)</label>
+        {/* Section 4: Photo */}
+        <div className="form-section-header">
+          <div className="form-section-title">04 · Item Image (Optional)</div>
+          <div className="form-section-desc">Upload a clear photo to assist campus identification</div>
+        </div>
 
+        {/* Image Upload Area */}
+        <div className="form-group">
           {!imagePreview ? (
             <div className="dropzone-container">
               <input
@@ -332,7 +379,9 @@ const PostItem = () => {
                 className="dropzone-file-input"
                 aria-label="Upload item image"
               />
-              <div className="dropzone-icon" aria-hidden="true">📷</div>
+              <div className="dropzone-icon" aria-hidden="true">
+                <UploadCloudIcon size={28} />
+              </div>
               <div className="dropzone-title">Click or tap to upload a photo</div>
               <div className="dropzone-subtitle">JPEG, PNG, WEBP, or GIF (max 5MB)</div>
             </div>
@@ -345,32 +394,18 @@ const PostItem = () => {
                 className="btn btn-secondary btn-sm btn-remove-image"
                 disabled={loading}
               >
-                ✕ Remove Image
+                Remove Image
               </button>
             </div>
           )}
         </div>
 
-        {/* Detailed Description */}
-        <div className="form-group">
-          <label htmlFor="description">Detailed Description *</label>
-          <textarea
-            id="description"
-            name="description"
-            rows="4"
-            placeholder="Provide identifiable markings, brand, colors, condition, or items inside..."
-            value={formData.description}
-            onChange={handleChange}
-            disabled={loading}
-            maxLength={1000}
-            required
-          ></textarea>
-        </div>
-
         {/* Submit Action */}
-        <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-          {loading ? (uploadStatus || 'Submitting...') : (formData.type === 'lost' ? 'Submit Lost Report' : 'Post Found Item')}
-        </button>
+        <div style={{ marginTop: '12px' }}>
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+            {loading ? (uploadStatus || 'Submitting...') : (formData.type === 'lost' ? 'Submit Lost Report' : 'Post Found Item')}
+          </button>
+        </div>
       </form>
     </div>
   );

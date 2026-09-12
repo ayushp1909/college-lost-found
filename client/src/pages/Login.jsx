@@ -57,12 +57,10 @@ const Login = () => {
 
   return (
     <div className="auth-card">
-      <div className="auth-header" style={{ textAlign: 'center' }}>
-        <div className="auth-brand-badge" aria-hidden="true">
-          📍
-        </div>
-        <h2>Welcome Back</h2>
-        <p className="auth-subtitle">Log in to manage your campus lost &amp; found items</p>
+      <div className="auth-header">
+        <span className="hero-eyebrow">KIET Campus Directory</span>
+        <h2>Account Login</h2>
+        <p className="auth-subtitle">Sign in to manage and review campus lost &amp; found reports</p>
       </div>
 
       {successMessage && <div className="alert alert-success">{successMessage}</div>}

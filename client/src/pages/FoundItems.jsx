@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 import ItemCard from '../components/ItemCard';
 import FilterBar from '../components/FilterBar';
+import { BoxIcon, SearchIcon } from '../components/Icons';
 import { KIET_LOCATION_GROUPS, KIET_LOCATIONS_FLAT, UNKNOWN_LOCATION_OPTION } from '../constants/locations';
 
 const FoundItems = () => {
@@ -120,7 +121,9 @@ const FoundItems = () => {
 
       {!loading && !error && items.length === 0 && (
         <div className="empty-state">
-          <span className="empty-state-icon" aria-hidden="true">📦</span>
+          <span className="empty-state-icon" aria-hidden="true">
+            <BoxIcon size={32} />
+          </span>
           <p>No found items reported currently.</p>
           <Link to="/post-item" className="btn btn-secondary">
             Post a Found Item
@@ -148,7 +151,9 @@ const FoundItems = () => {
 
           {filteredItems.length === 0 ? (
             <div className="empty-state">
-              <span className="empty-state-icon" aria-hidden="true">🔎</span>
+              <span className="empty-state-icon" aria-hidden="true">
+                <SearchIcon size={32} />
+              </span>
               <p>No items found matching your search.</p>
             </div>
           ) : (

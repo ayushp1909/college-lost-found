@@ -1,3 +1,5 @@
+import { SearchIcon } from './Icons';
+
 const FilterBar = ({
   searchQuery,
   onSearchChange,
@@ -21,10 +23,12 @@ const FilterBar = ({
 
   return (
     <div className="filter-bar">
-      {/* Search Input Row */}
+      {/* Search Row */}
       <div className="filter-search-row">
         <div className="search-input-group">
-          <span className="search-icon" aria-hidden="true">🔍</span>
+          <span className="search-icon" aria-hidden="true">
+            <SearchIcon size={15} />
+          </span>
           <input
             type="text"
             className="search-input"
@@ -48,7 +52,7 @@ const FilterBar = ({
         )}
       </div>
 
-      {/* Responsive Filter Selects Row */}
+      {/* Directory Filter Dropdowns */}
       <div className="filter-controls-row">
         {/* Category Filter */}
         <div className="filter-control">
@@ -116,7 +120,7 @@ const FilterBar = ({
           </select>
         </div>
 
-        {/* Results Counter */}
+        {/* Results Count */}
         <div className="filter-results-info">
           Showing <strong>{filteredCount}</strong> of <strong>{totalCount}</strong> items
         </div>

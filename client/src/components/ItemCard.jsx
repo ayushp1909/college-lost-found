@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { TagIcon, LocationIcon, CalendarIcon, UserIcon, EmptyBoxIcon } from './Icons';
 
 const ItemCard = ({ item }) => {
   const formattedDate = item.date
@@ -13,7 +14,7 @@ const ItemCard = ({ item }) => {
 
   return (
     <div className={`item-card type-${item.type}`}>
-      {/* Aspect-Ratio Maintained Image or Clean Neutral Placeholder */}
+      {/* Media Container */}
       <div className="card-image-wrapper">
         {item.imageUrl ? (
           <img
@@ -24,20 +25,22 @@ const ItemCard = ({ item }) => {
           />
         ) : (
           <div className="card-image-placeholder">
-            <span className="placeholder-icon" aria-hidden="true">📦</span>
+            <span className="placeholder-icon">
+              <EmptyBoxIcon size={26} />
+            </span>
             <span className="placeholder-text">No image uploaded</span>
           </div>
         )}
       </div>
 
       <div className="item-card-body">
-        {/* Badges: Type & Status */}
+        {/* Type & Status Badges */}
         <div className="item-card-header">
           <span className={`badge badge-${item.type}`}>
-            {item.type.toUpperCase()}
+            {item.type}
           </span>
           <span className={`badge badge-status-${item.status}`}>
-            {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+            {item.status}
           </span>
         </div>
 
@@ -46,28 +49,28 @@ const ItemCard = ({ item }) => {
           {item.title}
         </h3>
 
-        {/* Metadata */}
+        {/* Aligned Compact Metadata */}
         <div className="item-card-meta">
           <div className="meta-row" title={`Category: ${item.category}`}>
-            <span>🏷️</span>
+            <TagIcon className="icon" size={13} />
             <span>{item.category}</span>
           </div>
           <div className="meta-row" title={`Location: ${item.location || 'Not specified'}`}>
-            <span>📍</span>
+            <LocationIcon className="icon" size={13} />
             <span>{item.location || 'Not specified'}</span>
           </div>
           <div className="meta-row" title={`Reported on: ${formattedDate}`}>
-            <span>🗓️</span>
+            <CalendarIcon className="icon" size={13} />
             <span>{formattedDate}</span>
           </div>
           <div className="meta-row" title={`Reported by: ${ownerName}`}>
-            <span>👤</span>
+            <UserIcon className="icon" size={13} />
             <span>{ownerName}</span>
           </div>
         </div>
       </div>
 
-      {/* Touch-Friendly Card Footer */}
+      {/* Card Action */}
       <div className="item-card-footer">
         <Link to={`/items/${item._id}`} className="btn btn-secondary btn-sm">
           View Details

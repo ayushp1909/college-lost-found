@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
+import { BoxIcon, EditIcon, TrashIcon, LocationIcon, CalendarIcon, UserIcon, TagIcon } from '../components/Icons';
 
 const ItemDetails = () => {
   const { id } = useParams();
@@ -76,8 +77,10 @@ const ItemDetails = () => {
             <img src={item.imageUrl} alt={item.title} className="details-image" />
           ) : (
             <div className="details-image-placeholder">
-              <span className="placeholder-icon" aria-hidden="true">📦</span>
-              <span className="placeholder-text">No image uploaded for this item</span>
+              <span className="placeholder-icon" aria-hidden="true">
+                <BoxIcon size={36} />
+              </span>
+              <span className="placeholder-text">No photographic record uploaded for this item</span>
             </div>
           )}
         </div>
@@ -97,7 +100,8 @@ const ItemDetails = () => {
           {(isOwner || (user && user.role === 'admin')) && (
             <div className="details-actions">
               <Link to={`/edit-item/${item._id}`} className="btn btn-secondary btn-sm">
-                ✏️ Edit Report
+                <EditIcon size={13} />
+                <span>Edit Report</span>
               </Link>
               {isOwner && (
                 <button
@@ -106,33 +110,57 @@ const ItemDetails = () => {
                   disabled={deleting}
                   type="button"
                 >
-                  {deleting ? 'Deleting...' : '🗑️ Delete'}
+                  <TrashIcon size={13} />
+                  <span>{deleting ? 'Deleting...' : 'Delete'}</span>
                 </button>
               )}
             </div>
           )}
         </div>
 
-        {/* Title */}
-        <h1 className="details-title">{item.title}</h1>
+        {/* Institutional Record Header */}
+        <div style={{ marginBottom: '8px' }}>
+          <span style={{
+            fontSize: 'var(--font-size-xs)',
+            fontWeight: 700,
+            color: 'var(--primary)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}>
+            Item Record · Ref #{item._id.slice(-6).toUpperCase()}
+          </span>
+          <h1 className="details-title" style={{ marginTop: '4px' }}>{item.title}</h1>
+        </div>
 
         {/* Structured Metadata Grid */}
         <div className="details-meta-grid">
           <div className="meta-item">
             <span className="meta-label">Category</span>
-            <span className="meta-value">{item.category}</span>
+            <span className="meta-value" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <TagIcon size={13} />
+              {item.category}
+            </span>
           </div>
           <div className="meta-item">
             <span className="meta-label">Campus Location</span>
-            <span className="meta-value">📍 {item.location || 'Not specified'}</span>
+            <span className="meta-value" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <LocationIcon size={13} />
+              {item.location || 'Not specified'}
+            </span>
           </div>
           <div className="meta-item">
             <span className="meta-label">Date Reported</span>
-            <span className="meta-value">🗓️ {formattedDate}</span>
+            <span className="meta-value" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <CalendarIcon size={13} />
+              {formattedDate}
+            </span>
           </div>
           <div className="meta-item">
             <span className="meta-label">Reported By</span>
-            <span className="meta-value">👤 {ownerName}</span>
+            <span className="meta-value" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <UserIcon size={13} />
+              {ownerName}
+            </span>
           </div>
         </div>
 
