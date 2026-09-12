@@ -222,11 +222,41 @@ button, input, select, textarea {
   align-items: center;
   justify-content: center;
   color: #D7CBB8;
-  font-size: 0.95rem;
+  flex-shrink: 0;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.nav-brand-svg {
+  width: 17px;
+  height: 17px;
+  display: block;
 }
 
 .nav-brand:hover {
   color: #FFFFFF;
+}
+
+.nav-brand:hover .nav-brand-icon {
+  border-color: rgba(215, 203, 184, 0.55);
+  color: #FFFFFF;
+  background-color: #35483B;
+}
+
+@media (max-width: 380px) {
+  .nav-brand {
+    font-size: 1rem;
+    gap: 8px;
+  }
+
+  .nav-brand-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .nav-brand-svg {
+    width: 15px;
+    height: 15px;
+  }
 }
 
 /* Mobile Hamburger Toggle */

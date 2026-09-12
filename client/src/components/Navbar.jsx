@@ -22,8 +22,23 @@ const Navbar = () => {
       <div className="nav-container">
         {/* Brand */}
         <Link to="/" className="nav-brand" onClick={closeMenu}>
-          <span className="nav-brand-icon" aria-hidden="true">📍</span>
-          <span>Campus Lost &amp; Found</span>
+          <span className="nav-brand-icon" aria-hidden="true">
+            <svg
+              className="nav-brand-svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              <polyline points="8 11.5 10.5 14 14.5 9" />
+            </svg>
+          </span>
+          <span className="nav-brand-text">KIET Lost &amp; Found</span>
         </Link>
 
         {/* Mobile Hamburger Button */}
