@@ -78,11 +78,24 @@ const FilterBar = ({
             onChange={(e) => onLocationChange(e.target.value)}
           >
             <option value="">All Locations</option>
-            {locationOptions.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
+            {locationOptions.map((opt) => {
+              if (typeof opt === 'object' && opt.group && Array.isArray(opt.locations)) {
+                return (
+                  <optgroup key={opt.group} label={opt.group}>
+                    {opt.locations.map((loc) => (
+                      <option key={loc} value={loc}>
+                        {loc}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              }
+              return (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              );
+            })}
           </select>
         </div>
 

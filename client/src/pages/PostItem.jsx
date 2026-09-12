@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
+import { KIET_LOCATION_GROUPS, OTHER_LOCATION_OPTION } from '../constants/locations';
 
 const PostItem = () => {
   const navigate = useNavigate();
@@ -13,6 +14,9 @@ const PostItem = () => {
     location: '',
     date: new Date().toISOString().split('T')[0] // Defaults to today
   });
+
+  const [selectedLocationOption, setSelectedLocationOption] = useState('');
+  const [customLocation, setCustomLocation] = useState('');
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -59,6 +63,24 @@ const PostItem = () => {
     }
   };
 
+  const handleLocationSelect = (e) => {
+    const selected = e.target.value;
+    setSelectedLocationOption(selected);
+    setError('');
+    if (selected !== OTHER_LOCATION_OPTION) {
+      setFormData((prev) => ({ ...prev, location: selected }));
+    } else {
+      setFormData((prev) => ({ ...prev, location: customLocation.trim() }));
+    }
+  };
+
+  const handleCustomLocationChange = (e) => {
+    const val = e.target.value;
+    setCustomLocation(val);
+    setFormData((prev) => ({ ...prev, location: val }));
+    setError('');
+  };
+
   const handleRemoveImage = () => {
     setImageFile(null);
     setImagePreview(null);
@@ -68,7 +90,12 @@ const PostItem = () => {
     e.preventDefault();
     setError('');
 
-    if (!formData.title.trim() || !formData.description.trim() || !formData.category || !formData.location.trim() || !formData.date) {
+    const resolvedLocation =
+      selectedLocationOption === OTHER_LOCATION_OPTION
+        ? customLocation.trim()
+        : selectedLocationOption.trim();
+
+    if (!formData.title.trim() || !formData.description.trim() || !formData.category || !resolvedLocation || !formData.date) {
       setError('Please fill in all required fields.');
       return;
     }
@@ -98,6 +125,7 @@ const PostItem = () => {
         method: 'POST',
         body: {
           ...formData,
+          location: resolvedLocation,
           imageUrl: finalImageUrl
         }
       });
@@ -186,20 +214,51 @@ const PostItem = () => {
           </select>
         </div>
 
-        {/* Location */}
+        {/* Location Selector */}
         <div className="form-group">
-          <label htmlFor="location">Campus Location *</label>
-          <input
-            id="location"
-            type="text"
-            name="location"
-            placeholder="e.g. Central Library Floor 2, Study Room"
-            value={formData.location}
-            onChange={handleChange}
+          <label htmlFor="location-select">Campus Location *</label>
+          <select
+            id="location-select"
+            name="selectedLocationOption"
+            value={selectedLocationOption}
+            onChange={handleLocationSelect}
             disabled={loading}
             required
-          />
+          >
+            <option value="">-- Select Campus Location --</option>
+            {KIET_LOCATION_GROUPS.map((group) => (
+              <optgroup key={group.group} label={group.group}>
+                {group.locations.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+            <option value={OTHER_LOCATION_OPTION}>📍 Other Campus Location</option>
+          </select>
         </div>
+
+        {/* Custom Location Text Input (if Other Campus Location is selected) */}
+        {selectedLocationOption === OTHER_LOCATION_OPTION && (
+          <div className="form-group" style={{ marginTop: '-4px' }}>
+            <label htmlFor="custom-location">Specify Campus Location *</label>
+            <input
+              id="custom-location"
+              type="text"
+              name="customLocation"
+              placeholder="e.g. Near Workshop Shed, Gate 2"
+              value={customLocation}
+              onChange={handleCustomLocationChange}
+              disabled={loading}
+              required
+              autoFocus
+            />
+            <span className="form-help-text">
+              Enter a specific campus location not listed in the categories above.
+            </span>
+          </div>
+        )}
 
         {/* Date */}
         <div className="form-group">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 import ItemCard from '../components/ItemCard';
 import FilterBar from '../components/FilterBar';
+import { KIET_LOCATION_GROUPS, KIET_LOCATIONS_FLAT } from '../constants/locations';
 
 const LostItems = () => {
   const [items, setItems] = useState([]);
@@ -38,9 +39,21 @@ const LostItems = () => {
     new Set(items.map((item) => item.category).filter(Boolean))
   ).sort();
 
-  const locationOptions = Array.from(
-    new Set(items.map((item) => item.location).filter(Boolean))
+  // Grouped location options with standard KIET locations + any custom/legacy active locations
+  const activeCustomLocations = Array.from(
+    new Set(
+      items
+        .map((item) => item.location?.trim())
+        .filter((loc) => loc && !KIET_LOCATIONS_FLAT.includes(loc))
+    )
   ).sort();
+
+  const locationOptions = [
+    ...KIET_LOCATION_GROUPS,
+    ...(activeCustomLocations.length > 0
+      ? [{ group: 'Custom / Other Active Locations', locations: activeCustomLocations }]
+      : [])
+  ];
 
   // Reset all search and filter fields
   const handleClearFilters = () => {

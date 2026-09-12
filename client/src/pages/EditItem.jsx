@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
+import { KIET_LOCATION_GROUPS, KIET_LOCATIONS_FLAT, OTHER_LOCATION_OPTION } from '../constants/locations';
 
 const EditItem = () => {
   const { id } = useParams();
@@ -19,6 +20,9 @@ const EditItem = () => {
     status: 'active',
     imageUrl: ''
   });
+
+  const [selectedLocationOption, setSelectedLocationOption] = useState('');
+  const [customLocation, setCustomLocation] = useState('');
 
   const [itemOwnerId, setItemOwnerId] = useState(null);
   const [newImageFile, setNewImageFile] = useState(null);
@@ -64,6 +68,18 @@ const EditItem = () => {
           return;
         }
 
+        const existingLoc = (item.location || '').trim();
+        if (KIET_LOCATIONS_FLAT.includes(existingLoc)) {
+          setSelectedLocationOption(existingLoc);
+          setCustomLocation('');
+        } else if (existingLoc) {
+          setSelectedLocationOption(OTHER_LOCATION_OPTION);
+          setCustomLocation(existingLoc);
+        } else {
+          setSelectedLocationOption('');
+          setCustomLocation('');
+        }
+
         setFormData({
           title: item.title || '',
           description: item.description || '',
@@ -91,6 +107,24 @@ const EditItem = () => {
 
   const handleTypeSelect = (selectedType) => {
     setFormData({ ...formData, type: selectedType });
+    setError('');
+  };
+
+  const handleLocationSelect = (e) => {
+    const selected = e.target.value;
+    setSelectedLocationOption(selected);
+    setError('');
+    if (selected !== OTHER_LOCATION_OPTION) {
+      setFormData((prev) => ({ ...prev, location: selected }));
+    } else {
+      setFormData((prev) => ({ ...prev, location: customLocation.trim() }));
+    }
+  };
+
+  const handleCustomLocationChange = (e) => {
+    const val = e.target.value;
+    setCustomLocation(val);
+    setFormData((prev) => ({ ...prev, location: val }));
     setError('');
   };
 
@@ -124,7 +158,12 @@ const EditItem = () => {
     e.preventDefault();
     setError('');
 
-    if (!formData.title.trim() || !formData.description.trim() || !formData.category || !formData.location.trim() || !formData.date) {
+    const resolvedLocation =
+      selectedLocationOption === OTHER_LOCATION_OPTION
+        ? customLocation.trim()
+        : selectedLocationOption.trim();
+
+    if (!formData.title.trim() || !formData.description.trim() || !formData.category || !resolvedLocation || !formData.date) {
       setError('Please fill in all required fields.');
       return;
     }
@@ -153,6 +192,7 @@ const EditItem = () => {
         method: 'PUT',
         body: {
           ...formData,
+          location: resolvedLocation,
           imageUrl: finalImageUrl
         }
       });
@@ -266,19 +306,51 @@ const EditItem = () => {
           </select>
         </div>
 
-        {/* Location */}
+        {/* Location Selector */}
         <div className="form-group">
-          <label htmlFor="location">Campus Location *</label>
-          <input
-            id="location"
-            type="text"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
+          <label htmlFor="location-select">Campus Location *</label>
+          <select
+            id="location-select"
+            name="selectedLocationOption"
+            value={selectedLocationOption}
+            onChange={handleLocationSelect}
             disabled={saving}
             required
-          />
+          >
+            <option value="">-- Select Campus Location --</option>
+            {KIET_LOCATION_GROUPS.map((group) => (
+              <optgroup key={group.group} label={group.group}>
+                {group.locations.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+            <option value={OTHER_LOCATION_OPTION}>📍 Other Campus Location</option>
+          </select>
         </div>
+
+        {/* Custom Location Text Input (if Other Campus Location is selected or legacy custom location exists) */}
+        {selectedLocationOption === OTHER_LOCATION_OPTION && (
+          <div className="form-group" style={{ marginTop: '-4px' }}>
+            <label htmlFor="custom-location">Specify Campus Location *</label>
+            <input
+              id="custom-location"
+              type="text"
+              name="customLocation"
+              placeholder="e.g. Near Workshop Shed, Gate 2"
+              value={customLocation}
+              onChange={handleCustomLocationChange}
+              disabled={saving}
+              required
+              autoFocus
+            />
+            <span className="form-help-text">
+              Enter a specific campus location not listed in the categories above.
+            </span>
+          </div>
+        )}
 
         {/* Date */}
         <div className="form-group">
