@@ -1,8 +1,11 @@
 const { GoogleGenAI } = require('@google/genai');
 
+const UNKNOWN_LOCATION_TEXT = 'Unknown / Not Sure';
+
 /**
  * Prepares a concise text representation of an item for embedding generation.
  * Combines meaningful fields: title, description, category, and location.
+ * Omits location if empty or 'Unknown / Not Sure'.
  *
  * @param {Object} item - Item document or object
  * @returns {string} Combined text
@@ -10,11 +13,14 @@ const { GoogleGenAI } = require('@google/genai');
 function prepareItemText(item) {
   if (!item) return '';
 
+  const loc = item.location ? item.location.trim() : '';
+  const hasValidLocation = Boolean(loc && loc !== UNKNOWN_LOCATION_TEXT);
+
   const parts = [
     item.title?.trim(),
     item.description?.trim(),
     item.category ? `Category: ${item.category.trim()}` : null,
-    item.location ? `Location: ${item.location.trim()}` : null
+    hasValidLocation ? `Location: ${loc}` : null
   ].filter(Boolean);
 
   return parts.join('. ');

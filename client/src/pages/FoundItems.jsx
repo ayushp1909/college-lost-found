@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
 import ItemCard from '../components/ItemCard';
 import FilterBar from '../components/FilterBar';
-import { KIET_LOCATION_GROUPS, KIET_LOCATIONS_FLAT } from '../constants/locations';
+import { KIET_LOCATION_GROUPS, KIET_LOCATIONS_FLAT, UNKNOWN_LOCATION_OPTION } from '../constants/locations';
 
 const FoundItems = () => {
   const [items, setItems] = useState([]);
@@ -44,11 +44,14 @@ const FoundItems = () => {
     new Set(
       items
         .map((item) => item.location?.trim())
-        .filter((loc) => loc && !KIET_LOCATIONS_FLAT.includes(loc))
+        .filter(
+          (loc) => loc && !KIET_LOCATIONS_FLAT.includes(loc) && loc !== UNKNOWN_LOCATION_OPTION
+        )
     )
   ).sort();
 
   const locationOptions = [
+    UNKNOWN_LOCATION_OPTION,
     ...KIET_LOCATION_GROUPS,
     ...(activeCustomLocations.length > 0
       ? [{ group: 'Custom / Other Active Locations', locations: activeCustomLocations }]
@@ -82,8 +85,13 @@ const FoundItems = () => {
     }
 
     // 3. Location Filter
-    if (selectedLocation && item.location !== selectedLocation) {
-      return false;
+    if (selectedLocation) {
+      if (selectedLocation === UNKNOWN_LOCATION_OPTION) {
+        const isUnknown = item.location === UNKNOWN_LOCATION_OPTION || !item.location?.trim();
+        if (!isUnknown) return false;
+      } else if (item.location !== selectedLocation) {
+        return false;
+      }
     }
 
     // 4. Status Filter

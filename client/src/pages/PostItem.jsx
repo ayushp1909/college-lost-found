@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../utils/api';
-import { KIET_LOCATION_GROUPS, OTHER_LOCATION_OPTION } from '../constants/locations';
+import { KIET_LOCATION_GROUPS, OTHER_LOCATION_OPTION, UNKNOWN_LOCATION_OPTION } from '../constants/locations';
+
+const getTodayString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const PostItem = () => {
   const navigate = useNavigate();
@@ -12,7 +20,7 @@ const PostItem = () => {
     description: '',
     category: '',
     location: '',
-    date: new Date().toISOString().split('T')[0] // Defaults to today
+    date: getTodayString() // Defaults to today in local calendar time
   });
 
   const [selectedLocationOption, setSelectedLocationOption] = useState('');
@@ -67,10 +75,10 @@ const PostItem = () => {
     const selected = e.target.value;
     setSelectedLocationOption(selected);
     setError('');
-    if (selected !== OTHER_LOCATION_OPTION) {
-      setFormData((prev) => ({ ...prev, location: selected }));
-    } else {
+    if (selected === OTHER_LOCATION_OPTION) {
       setFormData((prev) => ({ ...prev, location: customLocation.trim() }));
+    } else {
+      setFormData((prev) => ({ ...prev, location: selected }));
     }
   };
 
@@ -90,13 +98,43 @@ const PostItem = () => {
     e.preventDefault();
     setError('');
 
-    const resolvedLocation =
-      selectedLocationOption === OTHER_LOCATION_OPTION
-        ? customLocation.trim()
-        : selectedLocationOption.trim();
+    let resolvedLocation = '';
+    if (selectedLocationOption === OTHER_LOCATION_OPTION) {
+      if (!customLocation.trim()) {
+        setError('Please specify the campus location or choose another option.');
+        return;
+      }
+      resolvedLocation = customLocation.trim();
+    } else if (selectedLocationOption === UNKNOWN_LOCATION_OPTION) {
+      resolvedLocation = UNKNOWN_LOCATION_OPTION;
+    } else if (selectedLocationOption) {
+      resolvedLocation = selectedLocationOption.trim();
+    }
 
-    if (!formData.title.trim() || !formData.description.trim() || !formData.category || !resolvedLocation || !formData.date) {
-      setError('Please fill in all required fields.');
+    if (!formData.title.trim() || !formData.description.trim() || !formData.category || !formData.date) {
+      setError('Please fill in all required fields: title, description, category, and date.');
+      return;
+    }
+
+    // P1-1: Future date prevention
+    if (formData.date > getTodayString()) {
+      setError('Date cannot be in the future.');
+      return;
+    }
+
+    // P1-3: Text length limits
+    if (formData.title.trim().length > 100) {
+      setError('Title cannot exceed 100 characters.');
+      return;
+    }
+
+    if (formData.description.trim().length > 1000) {
+      setError('Description cannot exceed 1000 characters.');
+      return;
+    }
+
+    if (resolvedLocation.length > 100) {
+      setError('Location cannot exceed 100 characters.');
       return;
     }
 
@@ -190,6 +228,7 @@ const PostItem = () => {
             value={formData.title}
             onChange={handleChange}
             disabled={loading}
+            maxLength={100}
             required
           />
         </div>
@@ -214,18 +253,20 @@ const PostItem = () => {
           </select>
         </div>
 
-        {/* Location Selector */}
+        {/* Location Selector (Optional per business rules) */}
         <div className="form-group">
-          <label htmlFor="location-select">Campus Location *</label>
+          <label htmlFor="location-select">
+            {formData.type === 'lost' ? 'Last Known Location (Optional)' : 'Location Found (Optional)'}
+          </label>
           <select
             id="location-select"
             name="selectedLocationOption"
             value={selectedLocationOption}
             onChange={handleLocationSelect}
             disabled={loading}
-            required
           >
-            <option value="">-- Select Campus Location --</option>
+            <option value="">-- Select Campus Location (Optional) --</option>
+            <option value={UNKNOWN_LOCATION_OPTION}>❓ {UNKNOWN_LOCATION_OPTION}</option>
             {KIET_LOCATION_GROUPS.map((group) => (
               <optgroup key={group.group} label={group.group}>
                 {group.locations.map((loc) => (
@@ -235,7 +276,7 @@ const PostItem = () => {
                 ))}
               </optgroup>
             ))}
-            <option value={OTHER_LOCATION_OPTION}>📍 Other Campus Location</option>
+            <option value={OTHER_LOCATION_OPTION}>📍 {OTHER_LOCATION_OPTION}</option>
           </select>
         </div>
 
@@ -251,11 +292,12 @@ const PostItem = () => {
               value={customLocation}
               onChange={handleCustomLocationChange}
               disabled={loading}
+              maxLength={100}
               required
               autoFocus
             />
             <span className="form-help-text">
-              Enter a specific campus location not listed in the categories above.
+              Enter a specific campus location not listed in the categories above (max 100 characters).
             </span>
           </div>
         )}
@@ -267,6 +309,7 @@ const PostItem = () => {
             id="date"
             type="date"
             name="date"
+            max={getTodayString()}
             value={formData.date}
             onChange={handleChange}
             disabled={loading}
@@ -319,6 +362,7 @@ const PostItem = () => {
             value={formData.description}
             onChange={handleChange}
             disabled={loading}
+            maxLength={1000}
             required
           ></textarea>
         </div>

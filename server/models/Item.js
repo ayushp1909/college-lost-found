@@ -1,21 +1,28 @@
 const mongoose = require('mongoose');
+const { VALID_CATEGORIES } = require('../constants/categories');
 
 const itemSchema = new mongoose.Schema(
   {
     title: {
       type: String,
       required: [true, 'Title is required'],
-      trim: true
+      trim: true,
+      maxlength: [100, 'Title cannot exceed 100 characters']
     },
     description: {
       type: String,
       required: [true, 'Description is required'],
-      trim: true
+      trim: true,
+      maxlength: [1000, 'Description cannot exceed 1000 characters']
     },
     category: {
       type: String,
       required: [true, 'Category is required'],
-      trim: true
+      trim: true,
+      enum: {
+        values: VALID_CATEGORIES,
+        message: 'Invalid category'
+      }
     },
     type: {
       type: String,
@@ -27,8 +34,9 @@ const itemSchema = new mongoose.Schema(
     },
     location: {
       type: String,
-      required: [true, 'Location is required'],
-      trim: true
+      trim: true,
+      default: '',
+      maxlength: [100, 'Location cannot exceed 100 characters']
     },
     date: {
       type: Date,

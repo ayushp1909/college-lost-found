@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
-import { KIET_LOCATION_GROUPS, KIET_LOCATIONS_FLAT, OTHER_LOCATION_OPTION } from '../constants/locations';
+import { KIET_LOCATION_GROUPS, KIET_LOCATIONS_FLAT, OTHER_LOCATION_OPTION, UNKNOWN_LOCATION_OPTION } from '../constants/locations';
+
+const getTodayString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const EditItem = () => {
   const { id } = useParams();
@@ -69,7 +77,10 @@ const EditItem = () => {
         }
 
         const existingLoc = (item.location || '').trim();
-        if (KIET_LOCATIONS_FLAT.includes(existingLoc)) {
+        if (existingLoc === UNKNOWN_LOCATION_OPTION) {
+          setSelectedLocationOption(UNKNOWN_LOCATION_OPTION);
+          setCustomLocation('');
+        } else if (KIET_LOCATIONS_FLAT.includes(existingLoc)) {
           setSelectedLocationOption(existingLoc);
           setCustomLocation('');
         } else if (existingLoc) {
@@ -158,13 +169,43 @@ const EditItem = () => {
     e.preventDefault();
     setError('');
 
-    const resolvedLocation =
-      selectedLocationOption === OTHER_LOCATION_OPTION
-        ? customLocation.trim()
-        : selectedLocationOption.trim();
+    let resolvedLocation = '';
+    if (selectedLocationOption === OTHER_LOCATION_OPTION) {
+      if (!customLocation.trim()) {
+        setError('Please specify the campus location or choose another option.');
+        return;
+      }
+      resolvedLocation = customLocation.trim();
+    } else if (selectedLocationOption === UNKNOWN_LOCATION_OPTION) {
+      resolvedLocation = UNKNOWN_LOCATION_OPTION;
+    } else if (selectedLocationOption) {
+      resolvedLocation = selectedLocationOption.trim();
+    }
 
-    if (!formData.title.trim() || !formData.description.trim() || !formData.category || !resolvedLocation || !formData.date) {
-      setError('Please fill in all required fields.');
+    if (!formData.title.trim() || !formData.description.trim() || !formData.category || !formData.date) {
+      setError('Please fill in all required fields: title, description, category, and date.');
+      return;
+    }
+
+    // P1-1: Future date prevention
+    if (formData.date > getTodayString()) {
+      setError('Date cannot be in the future.');
+      return;
+    }
+
+    // P1-3: Text length limits
+    if (formData.title.trim().length > 100) {
+      setError('Title cannot exceed 100 characters.');
+      return;
+    }
+
+    if (formData.description.trim().length > 1000) {
+      setError('Description cannot exceed 1000 characters.');
+      return;
+    }
+
+    if (resolvedLocation.length > 100) {
+      setError('Location cannot exceed 100 characters.');
       return;
     }
 
@@ -223,34 +264,37 @@ const EditItem = () => {
       {error && <div className="alert alert-error">{error}</div>}
 
       <form onSubmit={handleSubmit} className="form">
-        {/* Segmented Type Toggle */}
+        {/* Read-Only Item Classification Indicator (P1-2) */}
         <div className="form-group">
           <label>Item Classification</label>
-          <div className="type-segmented-control" role="group" aria-label="Select Lost or Found">
-            <button
-              type="button"
-              className={`type-segmented-btn ${formData.type === 'lost' ? 'active type-lost' : ''}`}
-              onClick={() => handleTypeSelect('lost')}
-              disabled={saving || isEditingAsAdmin}
-            >
-              <span>🔍</span>
-              <span>Lost Item</span>
-            </button>
-            <button
-              type="button"
-              className={`type-segmented-btn ${formData.type === 'found' ? 'active type-found' : ''}`}
-              onClick={() => handleTypeSelect('found')}
-              disabled={saving || isEditingAsAdmin}
-            >
-              <span>📦</span>
-              <span>Found Item</span>
-            </button>
-          </div>
-          {isEditingAsAdmin && (
-            <span className="form-help-text">
-              Item classification (Lost/Found) cannot be altered by admins to preserve semantic matching.
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '10px 14px',
+            borderRadius: 'var(--radius-sm)',
+            backgroundColor: 'var(--bg-subtle)',
+            border: '1px solid var(--border-subtle)',
+            flexWrap: 'wrap'
+          }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontWeight: 600,
+              fontSize: 'var(--font-size-sm)',
+              padding: '5px 12px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: formData.type === 'lost' ? '#FFF1F2' : '#EFF6FF',
+              color: formData.type === 'lost' ? '#9F1239' : '#1E40AF',
+              border: `1px solid ${formData.type === 'lost' ? '#FECDD3' : '#BFDBFE'}`
+            }}>
+              {formData.type === 'lost' ? '🔍 Lost Item' : '📦 Found Item'}
             </span>
-          )}
+            <span className="form-help-text" style={{ margin: 0 }}>
+              Item classification (Lost/Found) cannot be changed after creation.
+            </span>
+          </div>
         </div>
 
         {/* Title */}
@@ -263,6 +307,7 @@ const EditItem = () => {
             value={formData.title}
             onChange={handleChange}
             disabled={saving}
+            maxLength={100}
             required
           />
         </div>
@@ -306,18 +351,20 @@ const EditItem = () => {
           </select>
         </div>
 
-        {/* Location Selector */}
+        {/* Location Selector (Optional per business rules) */}
         <div className="form-group">
-          <label htmlFor="location-select">Campus Location *</label>
+          <label htmlFor="location-select">
+            {formData.type === 'lost' ? 'Last Known Location (Optional)' : 'Location Found (Optional)'}
+          </label>
           <select
             id="location-select"
             name="selectedLocationOption"
             value={selectedLocationOption}
             onChange={handleLocationSelect}
             disabled={saving}
-            required
           >
-            <option value="">-- Select Campus Location --</option>
+            <option value="">-- Select Campus Location (Optional) --</option>
+            <option value={UNKNOWN_LOCATION_OPTION}>❓ {UNKNOWN_LOCATION_OPTION}</option>
             {KIET_LOCATION_GROUPS.map((group) => (
               <optgroup key={group.group} label={group.group}>
                 {group.locations.map((loc) => (
@@ -327,7 +374,7 @@ const EditItem = () => {
                 ))}
               </optgroup>
             ))}
-            <option value={OTHER_LOCATION_OPTION}>📍 Other Campus Location</option>
+            <option value={OTHER_LOCATION_OPTION}>📍 {OTHER_LOCATION_OPTION}</option>
           </select>
         </div>
 
@@ -343,11 +390,12 @@ const EditItem = () => {
               value={customLocation}
               onChange={handleCustomLocationChange}
               disabled={saving}
+              maxLength={100}
               required
               autoFocus
             />
             <span className="form-help-text">
-              Enter a specific campus location not listed in the categories above.
+              Enter a specific campus location not listed in the categories above (max 100 characters).
             </span>
           </div>
         )}
@@ -359,6 +407,7 @@ const EditItem = () => {
             id="date"
             type="date"
             name="date"
+            max={getTodayString()}
             value={formData.date}
             onChange={handleChange}
             disabled={saving}
@@ -432,6 +481,7 @@ const EditItem = () => {
             value={formData.description}
             onChange={handleChange}
             disabled={saving}
+            maxLength={1000}
             required
           ></textarea>
         </div>

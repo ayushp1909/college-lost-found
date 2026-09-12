@@ -52,9 +52,9 @@ const ItemCard = ({ item }) => {
             <span>🏷️</span>
             <span>{item.category}</span>
           </div>
-          <div className="meta-row" title={`Location: ${item.location}`}>
+          <div className="meta-row" title={`Location: ${item.location || 'Not specified'}`}>
             <span>📍</span>
-            <span>{item.location}</span>
+            <span>{item.location || 'Not specified'}</span>
           </div>
           <div className="meta-row" title={`Reported on: ${formattedDate}`}>
             <span>🗓️</span>

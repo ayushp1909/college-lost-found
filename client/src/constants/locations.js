@@ -10,6 +10,7 @@
  */
 
 export const OTHER_LOCATION_OPTION = 'Other Campus Location';
+export const UNKNOWN_LOCATION_OPTION = 'Unknown / Not Sure';
 
 export const KIET_LOCATION_GROUPS = [
   {

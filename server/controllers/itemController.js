@@ -1,10 +1,44 @@
 const mongoose = require('mongoose');
 const Item = require('../models/Item');
+const Match = require('../models/Match');
 const cloudinary = require('../config/cloudinary');
-const { findPotentialMatches } = require('../services/matchingService');
+const matchingService = require('../services/matchingService');
+const { VALID_CATEGORIES } = require('../constants/categories');
 
 const VALID_TYPES = ['lost', 'found'];
 const VALID_STATUSES = ['active', 'matched', 'claimed', 'closed'];
+
+/**
+ * Validates that dateInput is a valid date and not in the future.
+ * Uses calendar date semantics in IST and UTC to prevent UTC rollover rejection.
+ */
+function validateItemDate(dateInput) {
+  if (!dateInput) {
+    return { valid: false, message: 'Date is required.' };
+  }
+
+  const parsedDate = new Date(dateInput);
+  if (isNaN(parsedDate.getTime())) {
+    return { valid: false, message: 'Invalid date provided.' };
+  }
+
+  const todayIST = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+  const todayUTC = new Intl.DateTimeFormat('en-CA', { timeZone: 'UTC' }).format(new Date());
+  const maxAllowedDate = todayIST > todayUTC ? todayIST : todayUTC;
+
+  let inputDateStr;
+  if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateInput)) {
+    inputDateStr = dateInput.substring(0, 10);
+  } else {
+    inputDateStr = parsedDate.toISOString().substring(0, 10);
+  }
+
+  if (inputDateStr > maxAllowedDate) {
+    return { valid: false, message: 'Date cannot be in the future.' };
+  }
+
+  return { valid: true, parsedDate };
+}
 
 // @desc    Create a new lost/found item
 // @route   POST /api/items
@@ -13,11 +47,46 @@ const createItem = async (req, res) => {
   try {
     const { title, description, category, type, location, date, imageUrl } = req.body;
 
-    // Validate required fields
-    if (!title || !description || !category || !type || !location || !date) {
+    // Validate required fields (location and imageUrl are optional per business rules)
+    if (!title || !description || !category || !type || !date) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields: title, description, category, type, location, date.'
+        message: 'Please provide all required fields: title, description, category, type, date.'
+      });
+    }
+
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    const trimmedCategory = typeof category === 'string' ? category.trim() : '';
+    const trimmedLocation = typeof location === 'string' ? location.trim() : '';
+
+    // P1-3: Maximum text length limits
+    if (trimmedTitle.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title cannot exceed 100 characters.'
+      });
+    }
+
+    if (trimmedDescription.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Description cannot exceed 1000 characters.'
+      });
+    }
+
+    if (trimmedLocation.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Location cannot exceed 100 characters.'
+      });
+    }
+
+    // P1-4: Backend category validation
+    if (!VALID_CATEGORIES.includes(trimmedCategory)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(', ')}.`
       });
     }
 
@@ -30,29 +99,30 @@ const createItem = async (req, res) => {
       });
     }
 
-    // Validate date format
-    const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) {
+    // P1-1: Validate date and reject future dates
+    const dateValidation = validateItemDate(date);
+    if (!dateValidation.valid) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid date provided.'
+        message: dateValidation.message
       });
     }
+    const parsedDate = dateValidation.parsedDate;
 
     // Create item associated with authenticated user (imageUrl is optional)
     const item = await Item.create({
-      title: title.trim(),
-      description: description.trim(),
-      category: category.trim(),
+      title: trimmedTitle,
+      description: trimmedDescription,
+      category: trimmedCategory,
       type: normalizedType,
-      location: location.trim(),
+      location: trimmedLocation,
       date: parsedDate,
       imageUrl: typeof imageUrl === 'string' ? imageUrl.trim() : '',
       userId: req.user._id
     });
 
     // Attempt AI semantic matching asynchronously without blocking or failing item creation
-    findPotentialMatches(item._id).catch((aiError) => {
+    matchingService.findPotentialMatches(item._id).catch((aiError) => {
       console.warn(`[AI Matching Notice] AI semantic matching could not be completed for item ${item._id}:`, aiError.message);
     });
 
@@ -165,23 +235,47 @@ const updateItem = async (req, res) => {
 
     const { title, description, category, type, location, date, status, imageUrl } = req.body;
 
-    // Validate type if provided (Admins cannot change type between lost and found)
+    // P1-2: Item type (Lost/Found) cannot be changed once created
     if (type !== undefined) {
       const normalizedType = type.toLowerCase().trim();
       if (normalizedType !== item.type) {
-        if (isAdmin && !isOwner) {
-          return res.status(400).json({
-            success: false,
-            message: 'Admins cannot change item type between Lost and Found.'
-          });
-        }
-        if (!VALID_TYPES.includes(normalizedType)) {
-          return res.status(400).json({
-            success: false,
-            message: 'Type must be either "lost" or "found".'
-          });
-        }
-        item.type = normalizedType;
+        return res.status(400).json({
+          success: false,
+          message: 'Item type (Lost/Found) cannot be changed once created. Please submit a new report.'
+        });
+      }
+    }
+
+    // P1-3: Maximum text length limits
+    if (title !== undefined && title.trim().length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title cannot exceed 100 characters.'
+      });
+    }
+
+    if (description !== undefined && description.trim().length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Description cannot exceed 1000 characters.'
+      });
+    }
+
+    if (location !== undefined && typeof location === 'string' && location.trim().length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: 'Location cannot exceed 100 characters.'
+      });
+    }
+
+    // P1-4: Backend category validation
+    if (category !== undefined) {
+      const trimmedCategory = typeof category === 'string' ? category.trim() : '';
+      if (!VALID_CATEGORIES.includes(trimmedCategory)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(', ')}.`
+        });
       }
     }
 
@@ -197,27 +291,54 @@ const updateItem = async (req, res) => {
       item.status = normalizedStatus;
     }
 
-    // Validate date if provided
+    // P1-1: Validate date and reject future dates
     if (date !== undefined) {
-      const parsedDate = new Date(date);
-      if (isNaN(parsedDate.getTime())) {
+      const dateValidation = validateItemDate(date);
+      if (!dateValidation.valid) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid date provided.'
+          message: dateValidation.message
         });
       }
-      item.date = parsedDate;
+      item.date = dateValidation.parsedDate;
     }
+
+    const oldTitle = item.title;
+    const oldDesc = item.description;
+    const oldCategory = item.category;
+    const oldLocation = item.location;
 
     if (title !== undefined) item.title = title.trim();
     if (description !== undefined) item.description = description.trim();
     if (category !== undefined) item.category = category.trim();
-    if (location !== undefined) item.location = location.trim();
+    if (location !== undefined) item.location = typeof location === 'string' ? location.trim() : '';
     if (imageUrl !== undefined) item.imageUrl = typeof imageUrl === 'string' ? imageUrl.trim() : '';
+
+    const semanticFieldsChanged =
+      (title !== undefined && item.title !== oldTitle) ||
+      (description !== undefined && item.description !== oldDesc) ||
+      (category !== undefined && item.category !== oldCategory) ||
+      (location !== undefined && item.location !== oldLocation);
 
     // Do NOT allow changing userId (ownership cannot be reassigned)
 
     const updatedItem = await item.save();
+
+    // P0-3: When an item's status changes to claimed or closed, delete all Match documents involving that item
+    if (item.status === 'claimed' || item.status === 'closed') {
+      await Match.deleteMany({
+        $or: [
+          { lostItemId: item._id },
+          { foundItemId: item._id }
+        ]
+      });
+    } else if (item.status === 'active' && semanticFieldsChanged) {
+      // When an ACTIVE item changes any AI-relevant field (title, description, category, location),
+      // re-run findPotentialMatches(item._id) non-blockingly so a Gemini failure does not fail update
+      matchingService.findPotentialMatches(item._id).catch((aiError) => {
+        console.warn(`[AI Rematching Warning] AI semantic matching could not be completed after update for item ${item._id}:`, aiError.message);
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -265,6 +386,14 @@ const deleteItem = async (req, res) => {
     }
 
     await item.deleteOne();
+
+    // P0-4: Ensure all Match documents referencing this item are deleted
+    await Match.deleteMany({
+      $or: [
+        { lostItemId: id },
+        { foundItemId: id }
+      ]
+    });
 
     return res.status(200).json({
       success: true,

@@ -124,7 +124,7 @@ const ItemDetails = () => {
           </div>
           <div className="meta-item">
             <span className="meta-label">Campus Location</span>
-            <span className="meta-value">📍 {item.location}</span>
+            <span className="meta-value">📍 {item.location || 'Not specified'}</span>
           </div>
           <div className="meta-item">
             <span className="meta-label">Date Reported</span>
